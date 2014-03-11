@@ -111,9 +111,6 @@ public:
     // transmission line and interconnect
     double transmissionCost(bool newSwitchyardRequired=true) const;
 
-    // construction management
-    double constructionMgmtCost() const;
-
     // project management
     double projectMgmtCost() const;
 
@@ -122,7 +119,7 @@ public:
 
     // insurance
     MultCost insuranceMultiplierAndCost(double foundationCost,
-        bool performanceBond) const;
+        bool performanceBond=false) const;
 
     // markup and contingency
     MultCost markupMultiplierAndCost(double transportationCost,
@@ -136,5 +133,5 @@ public:
                      double thermalBackfill=0.0, double overheadCollector=0.0,
                      bool performanceBond=false, double contingency=3.0, double warranty=0.02,
                      double useTax=0.0, double overhead=5.0, double profitMargin=5.0,
-                     double developmentFee=5.0, double transportationDistance=0.0);
+                     double developmentFee=5.0, double transportationDistance=0.0) const;
 };

@@ -7,7 +7,7 @@
 //
 
 #include "BOS.h"
-
+#include <iostream>
 
 BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
          int nTurbines, double interconnectVoltage, double distToInterconnect,
@@ -122,10 +122,10 @@ double BOS::engineeringCost() const{
 
     double cost = 7188.5 * nTurb;
 
-    cost += round(3.4893*log(nTurb)-7.3049);
+    cost += round(3.4893*log(nTurb)-7.3049)*16800;
 
-    double multiplier = 1.0;
-    if (farmSize > 200) multiplier = 2.0;
+    double multiplier = 2.0;
+    if (farmSize < 200) multiplier = 1.0;
     cost += multiplier * 161675;
 
     cost += 4000;
@@ -223,7 +223,7 @@ double BOS::buildingCost() const{
 double BOS::foundationCost() const{
 
     double cost = rating*diameter*topMass/1000.0
-        + 163421.5*pow(nTurb, 0.1458) + (hubHt-80)*500;
+        + 163421.5*pow(nTurb, -0.1458) + (hubHt-80)*500;
 
     if (soil == BOUYANT){
         cost += 20000;
@@ -338,7 +338,7 @@ double BOS::electricalInstallationCost(double rockTrenchingLength,
         }
     }
 
-    double cost = round(farmSize/25.0)*14985;
+    double cost = int(farmSize/25.0)*14985;
 
     if (farmSize > 200){
         cost += 300000;
@@ -346,7 +346,7 @@ double BOS::electricalInstallationCost(double rockTrenchingLength,
         cost += 155000;
     }
 
-    cost += nTurb*(factor1 + diameter*(factor2 + factor3*rockTrenchingLength))
+    cost += nTurb*(factor1 + diameter*(factor2 + factor3*rockTrenchingLength/100.0))
         + overheadCollector*200000 + 10000;
 
     return cost;
@@ -376,13 +376,6 @@ double BOS::transmissionCost(bool newSwitchyardRequired) const{
     return cost;
 }
 
-
-double BOS::constructionMgmtCost() const{
-
-    double cost = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
-
-    return cost;
-}
 
 
 double BOS::projectMgmtCost() const{
@@ -445,7 +438,7 @@ double BOS::totalCost(bool deliveryAssistRequired, bool padMountTransformer,
                       double thermalBackfill, double overheadCollector,
                       bool performanceBond, double contingency, double warranty,
                       double useTax, double overhead, double profitMargin,
-                      double developmentFee, double transportationDistance){
+                      double developmentFee, double transportationDistance) const{
 
     double cost = 0.0;
     double alpha = 0.0;
