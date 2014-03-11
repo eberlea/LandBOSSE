@@ -83,7 +83,7 @@ public:
     double powerPerformanceCost() const;
 
     // access roads and site improvement
-    double roadsCost() const;
+    double accessRoadsCost() const;
 
     // site compound and security
     double siteCompoundCost() const;
@@ -98,10 +98,12 @@ public:
     double erectionCost(bool deliveryAssistRequired=false) const;
 
     // electrical materials
-    double electricalMaterialsCost() const;
+    double electricalMaterialsCost(bool padMountTransformer=true,
+        double thermalBackfill=0.0) const;
 
     // electrical installation
-    double electricalInstallationCost() const;
+    double electricalInstallationCost(double rockTrenchingLength=10.0,
+        double overheadCollector=0.0) const;
 
     // collector substation
     double substationCost() const;
@@ -129,8 +131,10 @@ public:
 
 
     // total
-    double totalCost(bool deliveryAssistRequired, bool newSwitchyardRequired, bool performanceBond,
-                     double contingency, double warranty, double useTax, double overhead,
-                     double profitMargin, double developmentFee, double transportationDistance);
-
+    double totalCost(bool deliveryAssistRequired=false, bool padMountTransformer=true,
+                     bool newSwitchyardRequired=true, double rockTrenchingLength=10.0,
+                     double thermalBackfill=0.0, double overheadCollector=0.0,
+                     bool performanceBond=false, double contingency=3.0, double warranty=0.02,
+                     double useTax=0.0, double overhead=5.0, double profitMargin=5.0,
+                     double developmentFee=5.0, double transportationDistance=0.0);
 };

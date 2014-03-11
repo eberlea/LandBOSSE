@@ -149,28 +149,38 @@ double BOS::powerPerformanceCost() const{
 }
 
 
-double BOS::roadsCost() const{
+double BOS::accessRoadsCost() const{
 
-    double cost = 0.0;
+    double factor1 = 0.0;
+    double factor2 = 0.0;
 
     if (layout == SIMPLE){
         if (terrain == FLAT_TO_ROLLING){
-            cost = 6671648;
+            factor1 = 49962.5;
+            factor2 = 24.8;
         } else if (terrain == RIDGE_TOP){
-            cost = 7729995;
+            factor1 = 59822.0;
+            factor2 = 26.8;
         } else if (terrain == MOUNTAINOUS){
-            cost = 8412705;
+            factor1 = 66324.0;
+            factor2 = 26.8;
         }
 
     } else if (layout == COMPLEX){
         if (terrain == FLAT_TO_ROLLING){
-            cost = 8074668;
+            factor1 = 62653.6;
+            factor2 = 30.9;
         } else if (terrain == RIDGE_TOP){
-            cost = 9312692;
+            factor1 = 74213.3;
+            factor2 = 33.0;
         } else if (terrain == MOUNTAINOUS){
-            cost = 10224911;
+            factor1 = 82901.1;
+            factor2 = 33.0;
         }
     }
+
+    double cost = (nTurb*factor1 + nTurb*diameter*factor2 + constructionTime*55500
+                   + accessRoadEntrances*3800)*1.05;
 
     return cost;
 }
@@ -239,55 +249,105 @@ double BOS::erectionCost(bool deliveryAssistRequired) const{
 }
 
 
-double BOS::electricalMaterialsCost() const{
+double BOS::electricalMaterialsCost(bool padMountTransformer,
+    double thermalBackfill) const{
 
-    double cost = 0.0;
+    double factor1 = 0.0;
+    double factor2 = 0.0;
+    double factor3 = 0.0;
 
     if (layout == SIMPLE){
         if (terrain == FLAT_TO_ROLLING){
-            cost = 13097685;
+            factor1 = 66733.4;
+            factor2 = 27088.4;
+            factor3 = 545.4;
         } else if (terrain == RIDGE_TOP){
-            cost = 13675685;
+            factor1 = 67519.4;
+            factor2 = 27874.4;
+            factor3 = 590.8;
         } else if (terrain == MOUNTAINOUS){
-            cost = 13712382;
+            factor1 = 68305.4;
+            factor2 = 28660.4;
+            factor3 = 590.8;
         }
 
     } else if (layout == COMPLEX){
         if (terrain == FLAT_TO_ROLLING){
-            cost = 14675585;
+            factor1 = 67519.4;
+            factor2 = 27874.4;
+            factor3 = 681.7;
         } else if (terrain == RIDGE_TOP){
-            cost = 15254685;
+            factor1 = 68305.4;
+            factor2 = 28660.4;
+            factor3 = 727.2;
         } else if (terrain == MOUNTAINOUS){
-            cost = 15372585;
+            factor1 = 69484.4;
+            factor2 = 29839.4;
+            factor3 = 727.2;
         }
     }
+
+    double cost;
+    if (padMountTransformer){
+        cost = nTurb*factor1;
+    } else{
+        cost = nTurb*factor2;
+    }
+    cost += round(farmSize/25.0)*35375 + round(farmSize/100.0)*50000
+        + diameter*nTurb*factor3 + thermalBackfill*5 + 41945;
 
     return cost;
 }
 
 
-double BOS::electricalInstallationCost() const{
+double BOS::electricalInstallationCost(double rockTrenchingLength,
+    double overheadCollector) const{
 
-    double cost = 0.0;
+    double factor1 = 0.0;
+    double factor2 = 0.0;
+    double factor3 = 0.0;
 
     if (layout == SIMPLE){
         if (terrain == FLAT_TO_ROLLING){
-            cost = 5193910;
+            factor1 = 7059.3;
+            factor2 = 352.4;
+            factor3 = 297.0;
         } else if (terrain == RIDGE_TOP){
-            cost = 7791830;
+            factor1 = 7683.5;
+            factor2 = 564.3;
+            factor3 = 483.0;
         } else if (terrain == MOUNTAINOUS){
-            cost = 9260880;
+            factor1 = 8305.0;
+            factor2 = 682.6;
+            factor3 = 579.0;
         }
 
     } else if (layout == COMPLEX){
         if (terrain == FLAT_TO_ROLLING){
-            cost = 7757730;
+            factor1 = 7683.5;
+            factor2 = 564.9;
+            factor3 = 446.0;
         } else if (terrain == RIDGE_TOP){
-            cost = 11434480;
+            factor1 = 8305.0;
+            factor2 = 866.8;
+            factor3 = 713.0;
         } else if (terrain == MOUNTAINOUS){
-            cost = 12780880;
+            factor1 = 9240.0;
+            factor2 = 972.8;
+            factor3 = 792.0;
         }
     }
+
+    double cost = round(farmSize/25.0)*14985;
+
+    if (farmSize > 200){
+        cost += 300000;
+    } else{
+        cost += 155000;
+    }
+
+    cost += nTurb*(factor1 + diameter*(factor2 + factor3*rockTrenchingLength))
+        + overheadCollector*200000 + 10000;
 
     return cost;
 }
@@ -380,10 +440,12 @@ MultCost BOS::markupMultiplierAndCost(double transportationCost,
 }
 
 
-double BOS::totalCost(bool deliveryAssistRequired, bool newSwitchyardRequired, bool performanceBond,
-                      double contingency, double warranty, double useTax,
-                      double overhead, double profitMargin, double developmentFee,
-                      double transportationDistance){
+double BOS::totalCost(bool deliveryAssistRequired, bool padMountTransformer,
+                      bool newSwitchyardRequired, double rockTrenchingLength,
+                      double thermalBackfill, double overheadCollector,
+                      bool performanceBond, double contingency, double warranty,
+                      double useTax, double overhead, double profitMargin,
+                      double developmentFee, double transportationDistance){
 
     double cost = 0.0;
     double alpha = 0.0;
@@ -396,12 +458,12 @@ double BOS::totalCost(bool deliveryAssistRequired, bool newSwitchyardRequired, b
     cost += buildingCost();
     cost += transmissionCost(newSwitchyardRequired);
     cost += developmentCost(developmentFee);
-    cost += roadsCost();
+    cost += accessRoadsCost();
     double foundCost = foundationCost();
     cost += foundCost;
     cost += erectionCost(deliveryAssistRequired);
-    cost += electricalMaterialsCost();
-    cost += electricalInstallationCost();
+    cost += electricalMaterialsCost(padMountTransformer, thermalBackfill);
+    cost += electricalInstallationCost(rockTrenchingLength, overheadCollector);
     cost += substationCost();
     cost += projectMgmtCost();
 
