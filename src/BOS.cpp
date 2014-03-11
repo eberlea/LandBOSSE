@@ -30,6 +30,77 @@ BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
 
     farmSize = rating * nTurb / 1000.0;
 
+    // --- set default values that can be overridden ---
+
+    // Construction Time (months)
+    constructionTime = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
+
+    // Access road entrances
+    accessRoadEntrances = fmax(1, round(nTurb/20.0));
+
+    // O&M Building Size (ft2)
+    if (farmSize < 200){
+        buildingSize = 3000;
+    } else if (farmSize < 500){
+        buildingSize = 5000;
+    } else if (farmSize < 800){
+        buildingSize = 7000;
+    } else if (farmSize < 1000){
+        buildingSize = 9000;
+    } else{
+        buildingSize = 12000;
+    }
+
+    // Quantity of Temporary Meteorological Towers for Testing
+    temporary = round(farmSize/75.0);
+
+    // Quantity of Permanent Meteorological Towers for Testing
+    if (farmSize < 100){
+        permanent = 1;
+    } else if (farmSize < 200){
+        permanent = 2;
+    } else{
+        permanent = int(farmSize/100.0);
+    }
+
+    // Wind/Weather delay days
+    weatherDelayDays = round(nTurb/5.0);
+
+    // Crane breakdowns
+    craneBreakdowns = round(nTurb/20.0);
+
+    // ---------------------------------
+
+
+}
+
+
+void BOS::setConstructionTime(int months){
+    constructionTime = months;
+}
+
+void BOS::setAccessRoadEntrances(int number){
+    accessRoadEntrances = number;
+}
+
+void BOS::setBuildingSize(double sqft){
+    buildingSize = sqft;
+}
+
+void BOS::setTempTowers(double towers){
+    temporary = towers;
+}
+
+void BOS::setPermanentTowers(double towers){
+    permanent = towers;
+}
+
+void BOS::setWeatherDelays(int days){
+    weatherDelayDays = days;
+}
+
+void BOS::setCraneBreakdowns(int number){
+    craneBreakdowns = number;
 }
 
 
@@ -65,17 +136,6 @@ double BOS::engineeringCost() const{
 
 
 double BOS::powerPerformanceCost() const{
-
-    int permanent;
-    if (farmSize < 100){
-        permanent = 1;
-    } else if (farmSize < 200){
-        permanent = 2;
-    } else{
-        permanent = int(farmSize/100.0);
-    }
-
-    int temporary = round(farmSize/75.0);
 
     double multiplier1 = 290000;
     double multiplier2 = 116800;
@@ -119,18 +179,6 @@ double BOS::roadsCost() const{
 
 double BOS::siteCompoundCost() const{
 
-    int accessRoadEntrances = fmax(1, round(nTurb/20.0));
-
-    int constructionTime = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
-
-    return siteCompoundCost(accessRoadEntrances, constructionTime);
-
-}
-
-
-double BOS::siteCompoundCost(int accessRoadEntrances, int constructionTime) const{
-
-
     double cost = 9825.0*accessRoadEntrances + 29850.0*constructionTime;
 
     double multiplier;
@@ -157,25 +205,6 @@ double BOS::siteCompoundCost(int accessRoadEntrances, int constructionTime) cons
 
 double BOS::buildingCost() const{
 
-    double buildingSize;
-    if (farmSize < 200){
-        buildingSize = 3000;
-    } else if (farmSize < 500){
-        buildingSize = 5000;
-    } else if (farmSize < 800){
-        buildingSize = 7000;
-    } else if (farmSize < 1000){
-        buildingSize = 9000;
-    } else{
-        buildingSize = 12000;
-    }
-
-    return buildingCost(buildingSize);
-}
-
-
-double BOS::buildingCost(double buildingSize) const{
-
     double cost = buildingSize*125 + 176125;
 
     return cost;
@@ -198,14 +227,6 @@ double BOS::foundationCost() const{
 
 
 double BOS::erectionCosts(bool deliveryAssistRequired) const{
-    int weatherDelayDays = round(nTurb/5.0);
-    int craneBreakdowns = round(nTurb/20.0);
-
-    return erectionCosts(deliveryAssistRequired, weatherDelayDays, craneBreakdowns);
-}
-
-
-double BOS::erectionCosts(bool deliveryAssistRequired, int weatherDelayDays, int craneBreakdowns) const{
 
     double cost = (37*rating + 27000*pow(nTurb, -0.42145) + (hubHt-80)*500)*nTurb;
 
@@ -274,8 +295,9 @@ double BOS::electricalInstallationCost() const{
 
 
 double BOS::substationCost() const{
+
     double cost = 11652*(voltage+farmSize) + 11795*pow(farmSize, 0.3549) + 1526800;
-    
+
     return cost;
 }
 
@@ -283,36 +305,36 @@ double BOS::substationCost() const{
 double BOS::transmissionCost(bool newSwitchyardRequired) const{
 
     double cost = 0.0;
-    
+
     if (distInter != 0){
         cost = (1176*voltage + 218257)*pow(distInter, 0.8937);
     }
-    
+
     if (newSwitchyardRequired){
         cost += 18115*voltage + 165944;
     }
-    
+
     return cost;
 }
 
 
 double BOS::constructionMgmtCost() const{
-    
+
     double cost = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
-    
+
     return cost;
 }
 
 
 double BOS::projectMgmtCost(int constructionTime) const{
-    
+
     double cost;
     if (constructionTime < 28){
         cost = (53.333*constructionTime*constructionTime - 3442*constructionTime + 209542)*(constructionTime + 2);
     } else{
         cost = (constructionTime + 2)*155000;
     }
-    
+
     return cost;
 }
 
@@ -322,3 +344,31 @@ double BOS::developmentCost(double developmentFee) const{
     return developmentFee*1000000;
 }
 
+
+double BOS::insuranceMultiplier(bool performanceBond) const{
+
+    double alpha = 3.5 + 0.7 + 0.4 + 1.0;
+
+    if (performanceBond){
+        alpha += 10.0;
+    }
+
+    alpha /= 1000.0;
+
+    double multiplier = 1.0/(1-alpha);
+
+    return multiplier;
+}
+
+double BOS::insuranceFixedCosts(double foundationCost, bool performanceBond) const{
+
+    double cost = (0.7 + 0.4 + 1.0) * tcc * farmSize;
+
+    if (performanceBond){
+        cost += 10.0 * tcc * farmSize;
+    }
+
+    cost += 0.02*foundationCost + 20000;
+
+    return cost;
+}
