@@ -225,7 +225,7 @@ double BOS::foundationCost() const{
 }
 
 
-double BOS::erectionCosts(bool deliveryAssistRequired) const{
+double BOS::erectionCost(bool deliveryAssistRequired) const{
 
     double cost = (37*rating + 27000*pow(nTurb, -0.42145) + (hubHt-80)*500)*nTurb;
 
@@ -325,7 +325,7 @@ double BOS::constructionMgmtCost() const{
 }
 
 
-double BOS::projectMgmtCost(int constructionTime) const{
+double BOS::projectMgmtCost() const{
 
     double cost;
     if (constructionTime < 28){
@@ -345,62 +345,80 @@ double BOS::developmentCost(double developmentFee) const{
 }
 
 
-std::pair<double, double> BOS::insuranceMultiplierAndCosts(double foundationCost,
+MultCost BOS::insuranceMultiplierAndCost(double foundationCost,
     bool performanceBond) const{
 
-    double alpha = 3.5 + 0.7 + 0.4 + 1.0;
-    double cost = (0.7 + 0.4 + 1.0) * tcc * farmSize;
+    MultCost result;
+
+    result.alpha = 3.5 + 0.7 + 0.4 + 1.0;
+    result.cost = (0.7 + 0.4 + 1.0) * tcc * farmSize;
 
     if (performanceBond){
-        alpha += 10.0;
-        cost += 10.0 * tcc * farmSize;
+        result.alpha += 10.0;
+        result.cost += 10.0 * tcc * farmSize;
     }
 
-    alpha /= 1000.0;
-    cost += 0.02*foundationCost + 20000;
+    result.alpha /= 1000.0;
+    result.cost += 0.02*foundationCost + 20000;
 
-    double multiplier = 1.0/(1-alpha);
-
-    return std::make_pair(multiplier, cost);
+    return result;
 }
 
-//double BOS::insuranceMultiplier(bool performanceBond) const{
-//
-//    double alpha = 3.5 + 0.7 + 0.4 + 1.0;
-//
-//    if (performanceBond){
-//        alpha += 10.0;
-//    }
-//
-//    alpha /= 1000.0;
-//
-//    double multiplier = 1.0/(1-alpha);
-//
-//    return multiplier;
-//}
-//
-//double BOS::insuranceFixedCosts(double foundationCost, bool performanceBond) const{
-//
-//    double cost = (0.7 + 0.4 + 1.0) * tcc * farmSize;
-//
-//    if (performanceBond){
-//        cost += 10.0 * tcc * farmSize;
-//    }
-//
-//    cost += 0.02*foundationCost + 20000;
-//
-//    return cost;
-//}
 
-std::pair<double, double> BOS::markupMultiplierAndCosts(double transportationCost,
+MultCost BOS::markupMultiplierAndCost(double transportationCost,
     double contingency, double warranty, double useTax, double overhead,
     double profitMargin) const{
 
-    double alpha = (contingency + warranty + useTax + overhead + profitMargin)/100.0;
+    MultCost result;
 
-    double cost = -alpha * transportationCost;
+    result.alpha = (contingency + warranty + useTax + overhead + profitMargin)/100.0;
 
-    double multiplier = 1.0/(1-alpha);
+    result.cost = -result.alpha * transportationCost;
 
-    return std::make_pair(multiplier, cost);
+
+    return result;
+}
+
+
+double BOS::totalCost(bool deliveryAssistRequired, bool newSwitchyardRequired, bool performanceBond,
+                      double contingency, double warranty, double useTax,
+                      double overhead, double profitMargin, double developmentFee,
+                      double transportationDistance){
+
+    double cost = 0.0;
+    double alpha = 0.0;
+
+    double transCost = transportationCost(transportationDistance);
+    cost += transCost;
+    cost += engineeringCost();
+    cost += powerPerformanceCost();
+    cost += siteCompoundCost();
+    cost += buildingCost();
+    cost += transmissionCost(newSwitchyardRequired);
+    cost += developmentCost(developmentFee);
+    cost += roadsCost();
+    double foundCost = foundationCost();
+    cost += foundCost;
+    cost += erectionCost(deliveryAssistRequired);
+    cost += electricalMaterialsCost();
+    cost += electricalInstallationCost();
+    cost += substationCost();
+    cost += projectMgmtCost();
+
+
+    MultCost result;
+    result = insuranceMultiplierAndCost(foundCost, performanceBond);
+    cost += result.cost;
+    alpha += result.alpha;
+
+    result = markupMultiplierAndCost(transCost, contingency, warranty, useTax,
+                                     overhead, profitMargin);
+    cost += result.cost;
+    alpha += result.alpha;
+
+    // multiplier
+    cost /= (1.0 - alpha);
+
+    return cost;
+
 }

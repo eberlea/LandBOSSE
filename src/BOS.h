@@ -9,7 +9,6 @@
 #ifndef __LandBOS__BOS__
 #define __LandBOS__BOS__
 
-#include <utility>
 #include <math.h>
 
 #endif /* defined(__LandBOS__BOS__) */
@@ -18,6 +17,11 @@
 enum SiteTerrain {FLAT_TO_ROLLING, RIDGE_TOP, MOUNTAINOUS};
 enum TurbineLayout {SIMPLE, COMPLEX};
 enum SoilCondition {STANDARD, BOUYANT};
+
+struct MultCost {
+    double alpha;
+    double cost;
+};
 
 class BOS {
     double rating;  // machine rating (kW)
@@ -91,7 +95,7 @@ public:
     double foundationCost() const;
 
     // erection
-    double erectionCosts(bool deliveryAssistRequired=false) const;
+    double erectionCost(bool deliveryAssistRequired=false) const;
 
     // electrical materials
     double electricalMaterialsCost() const;
@@ -109,21 +113,24 @@ public:
     double constructionMgmtCost() const;
 
     // project management
-    double projectMgmtCost(int constructionTime) const;
+    double projectMgmtCost() const;
 
     // development
     double developmentCost(double developmentFee=5.0) const;
 
     // insurance
-//    double insuranceMultiplier(bool performanceBond = false) const;
-//    double insuranceFixedCosts(double foundationCost, bool performanceBond = false) const;
-    std::pair<double, double> insuranceMultiplierAndCosts(double foundationCost,
+    MultCost insuranceMultiplierAndCost(double foundationCost,
         bool performanceBond) const;
 
     // markup and contingency
-    std::pair<double, double> markupMultiplierAndCosts(double transportationCost,
+    MultCost markupMultiplierAndCost(double transportationCost,
         double contingency=3.0, double warranty=0.02, double useTax=0.0,
         double overhead=5.0, double profitMargin=5.0) const;
 
+
+    // total
+    double totalCost(bool deliveryAssistRequired, bool newSwitchyardRequired, bool performanceBond,
+                     double contingency, double warranty, double useTax, double overhead,
+                     double profitMargin, double developmentFee, double transportationDistance);
 
 };
