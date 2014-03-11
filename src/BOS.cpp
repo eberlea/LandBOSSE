@@ -27,7 +27,7 @@ BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
     terrain = siteTerrain;
     layout = turbineLayout;
     soil = soilCondition;
-    
+
     farmSize = rating * nTurb / 1000.0;
 
 }
@@ -35,37 +35,37 @@ BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
 
 
 double BOS::transportationCost(double transportationDistance) const{
-    
+
     double cost = tcc * rating * nTurb;
-    
+
     if (rating < 2500 && hubHt < 100) {
         cost += 1349*pow(transportationDistance, 0.746) * nTurb;
     } else {
         cost += 1867*pow(transportationDistance, 0.726) * nTurb;
     }
-    
+
     return cost;
 }
 
 
 double BOS::engineeringCost() const{
-    
+
     double cost = 7188.5 * nTurb;
-    
+
     cost += round(3.4893*log(nTurb)-7.3049);
-    
+
     double multiplier = 1.0;
     if (farmSize > 200) multiplier = 2.0;
     cost += multiplier * 161675;
-    
+
     cost += 4000;
-    
+
     return cost;
 }
 
 
 double BOS::powerPerformanceCost() const{
-    
+
     int permanent;
     if (farmSize < 100){
         permanent = 1;
@@ -74,9 +74,9 @@ double BOS::powerPerformanceCost() const{
     } else{
         permanent = int(farmSize/100.0);
     }
-    
+
     int temporary = round(farmSize/75.0);
-    
+
     double multiplier1 = 290000;
     double multiplier2 = 116800;
     if (hubHt < 90) {
@@ -86,14 +86,14 @@ double BOS::powerPerformanceCost() const{
 
     double cost = 200000 + permanent*multiplier1 + temporary*multiplier2;
 
-    return cost;    
+    return cost;
 }
 
 
 double BOS::roadsCost() const{
-    
+
     double cost = 0.0;
-    
+
     if (layout == SIMPLE){
         if (terrain == FLAT_TO_ROLLING){
             cost = 6671648;
@@ -102,7 +102,7 @@ double BOS::roadsCost() const{
         } else if (terrain == MOUNTAINOUS){
             cost = 8412705;
         }
-    
+
     } else if (layout == COMPLEX){
         if (terrain == FLAT_TO_ROLLING){
             cost = 8074668;
@@ -118,21 +118,21 @@ double BOS::roadsCost() const{
 
 
 double BOS::siteCompoundCost() const{
- 
+
     int accessRoadEntrances = fmax(1, round(nTurb/20.0));
-    
+
     int constructionTime = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
-    
+
     return siteCompoundCost(accessRoadEntrances, constructionTime);
-    
+
 }
 
 
 double BOS::siteCompoundCost(int accessRoadEntrances, int constructionTime) const{
-    
-    
+
+
     double cost = 9825.0*accessRoadEntrances + 29850.0*constructionTime;
-    
+
     double multiplier;
     if (farmSize > 100){
         multiplier = 10.0;
@@ -141,22 +141,22 @@ double BOS::siteCompoundCost(int accessRoadEntrances, int constructionTime) cons
     } else{
         multiplier = 3.0;
     }
-    
+
     cost += multiplier * 30000;
-    
-    
+
+
     if (farmSize > 30){
         cost += 90000;
     }
-    
+
     cost += farmSize*60 + 62400;
-    
+
     return cost;
 }
 
 
 double BOS::buildingCost() const{
-    
+
     double buildingSize;
     if (farmSize < 200){
         buildingSize = 3000;
@@ -169,15 +169,156 @@ double BOS::buildingCost() const{
     } else{
         buildingSize = 12000;
     }
-    
+
     return buildingCost(buildingSize);
 }
 
 
 double BOS::buildingCost(double buildingSize) const{
-    
+
     double cost = buildingSize*125 + 176125;
+
+    return cost;
+
+}
+
+double BOS::foundationCost() const{
+
+    double cost = rating*diameter*topMass/1000.0
+        + 163421.5*pow(nTurb, 0.1458) + (hubHt-80)*500;
+
+    if (soil == BOUYANT){
+        cost += 20000;
+    }
+
+    cost *= nTurb;
+
+    return cost;
+}
+
+
+double BOS::erectionCosts(bool deliveryAssistRequired) const{
+    int weatherDelayDays = round(nTurb/5.0);
+    int craneBreakdowns = round(nTurb/20.0);
+
+    return erectionCosts(deliveryAssistRequired, weatherDelayDays, craneBreakdowns);
+}
+
+
+double BOS::erectionCosts(bool deliveryAssistRequired, int weatherDelayDays, int craneBreakdowns) const{
+
+    double cost = (37*rating + 27000*pow(nTurb, -0.42145) + (hubHt-80)*500)*nTurb;
+
+    if (deliveryAssistRequired){
+        cost += 60000*nTurb;
+    }
+
+    cost += 20000*weatherDelayDays + 35000*craneBreakdowns + 181*nTurb + 1834;
+
+    return cost;
+}
+
+
+double BOS::electricalMaterialsCost() const{
+
+    double cost = 0.0;
+
+    if (layout == SIMPLE){
+        if (terrain == FLAT_TO_ROLLING){
+            cost = 13097685;
+        } else if (terrain == RIDGE_TOP){
+            cost = 13675685;
+        } else if (terrain == MOUNTAINOUS){
+            cost = 13712382;
+        }
+
+    } else if (layout == COMPLEX){
+        if (terrain == FLAT_TO_ROLLING){
+            cost = 14675585;
+        } else if (terrain == RIDGE_TOP){
+            cost = 15254685;
+        } else if (terrain == MOUNTAINOUS){
+            cost = 15372585;
+        }
+    }
+
+    return cost;
+}
+
+
+double BOS::electricalInstallationCost() const{
+
+    double cost = 0.0;
+
+    if (layout == SIMPLE){
+        if (terrain == FLAT_TO_ROLLING){
+            cost = 5193910;
+        } else if (terrain == RIDGE_TOP){
+            cost = 7791830;
+        } else if (terrain == MOUNTAINOUS){
+            cost = 9260880;
+        }
+
+    } else if (layout == COMPLEX){
+        if (terrain == FLAT_TO_ROLLING){
+            cost = 7757730;
+        } else if (terrain == RIDGE_TOP){
+            cost = 11434480;
+        } else if (terrain == MOUNTAINOUS){
+            cost = 12780880;
+        }
+    }
+
+    return cost;
+}
+
+
+double BOS::substationCost() const{
+    double cost = 11652*(voltage+farmSize) + 11795*pow(farmSize, 0.3549) + 1526800;
     
     return cost;
-    
 }
+
+
+double BOS::transmissionCost(bool newSwitchyardRequired) const{
+
+    double cost = 0.0;
+    
+    if (distInter != 0){
+        cost = (1176*voltage + 218257)*pow(distInter, 0.8937);
+    }
+    
+    if (newSwitchyardRequired){
+        cost += 18115*voltage + 165944;
+    }
+    
+    return cost;
+}
+
+
+double BOS::constructionMgmtCost() const{
+    
+    double cost = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
+    
+    return cost;
+}
+
+
+double BOS::projectMgmtCost(int constructionTime) const{
+    
+    double cost;
+    if (constructionTime < 28){
+        cost = (53.333*constructionTime*constructionTime - 3442*constructionTime + 209542)*(constructionTime + 2);
+    } else{
+        cost = (constructionTime + 2)*155000;
+    }
+    
+    return cost;
+}
+
+
+double BOS::developmentCost(double developmentFee) const{
+
+    return developmentFee*1000000;
+}
+
