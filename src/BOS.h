@@ -9,7 +9,8 @@
 #ifndef __LandBOS__BOS__
 #define __LandBOS__BOS__
 
-//#include <iostream>
+#include <utility>
+#include <math.h>
 
 #endif /* defined(__LandBOS__BOS__) */
 
@@ -68,52 +69,61 @@ public:
     void setWeatherDelays(int days);
     void setCraneBreakdowns(int number);
 
-    // transportation costs
-    double transportationCost(double transportationDistance = 0.0) const;
+    // transportation
+    double transportationCost(double transportationDistance=0.0) const;
 
-    // engineering costs
+    // engineering
     double engineeringCost() const;
 
-    // met masts and power performance costs
+    // met masts and power performance
     double powerPerformanceCost() const;
 
-    // access roads and site improvement costs
+    // access roads and site improvement
     double roadsCost() const;
 
-    // site compound and security costs
+    // site compound and security
     double siteCompoundCost() const;
 
-    // control O&M building costs
+    // control O&M building
     double buildingCost() const;
 
-    // foundation costs
+    // foundation
     double foundationCost() const;
 
-    // erection costs
-    double erectionCosts(bool deliveryAssistRequired = false) const;
+    // erection
+    double erectionCosts(bool deliveryAssistRequired=false) const;
 
-    // electrical materials costs
+    // electrical materials
     double electricalMaterialsCost() const;
 
-    // electrical installation costs
+    // electrical installation
     double electricalInstallationCost() const;
 
-    // collector substation costs
+    // collector substation
     double substationCost() const;
 
-    // transmission line and interconnect costs
-    double transmissionCost(bool newSwitchyardRequired = true) const;
+    // transmission line and interconnect
+    double transmissionCost(bool newSwitchyardRequired=true) const;
 
-    // construction management costs
+    // construction management
     double constructionMgmtCost() const;
 
-    // project management costs
+    // project management
     double projectMgmtCost(int constructionTime) const;
 
-    // development costs
-    double developmentCost(double developmentFee = 5.0) const;
+    // development
+    double developmentCost(double developmentFee=5.0) const;
 
-    // insurance costs
-    double insuranceMultiplier(bool performanceBond = false) const;
-    double insuranceFixedCosts(double foundationCost, bool performanceBond = false) const;
+    // insurance
+//    double insuranceMultiplier(bool performanceBond = false) const;
+//    double insuranceFixedCosts(double foundationCost, bool performanceBond = false) const;
+    std::pair<double, double> insuranceMultiplierAndCosts(double foundationCost,
+        bool performanceBond) const;
+
+    // markup and contingency
+    std::pair<double, double> markupMultiplierAndCosts(double transportationCost,
+        double contingency=3.0, double warranty=0.02, double useTax=0.0,
+        double overhead=5.0, double profitMargin=5.0) const;
+
+
 };

@@ -7,7 +7,6 @@
 //
 
 #include "BOS.h"
-#include <math.h>
 
 
 BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
@@ -330,7 +329,8 @@ double BOS::projectMgmtCost(int constructionTime) const{
 
     double cost;
     if (constructionTime < 28){
-        cost = (53.333*constructionTime*constructionTime - 3442*constructionTime + 209542)*(constructionTime + 2);
+        cost = (53.333*constructionTime*constructionTime - 3442*constructionTime
+            + 209542)*(constructionTime + 2);
     } else{
         cost = (constructionTime + 2)*155000;
     }
@@ -345,30 +345,62 @@ double BOS::developmentCost(double developmentFee) const{
 }
 
 
-double BOS::insuranceMultiplier(bool performanceBond) const{
+std::pair<double, double> BOS::insuranceMultiplierAndCosts(double foundationCost,
+    bool performanceBond) const{
 
     double alpha = 3.5 + 0.7 + 0.4 + 1.0;
-
-    if (performanceBond){
-        alpha += 10.0;
-    }
-
-    alpha /= 1000.0;
-
-    double multiplier = 1.0/(1-alpha);
-
-    return multiplier;
-}
-
-double BOS::insuranceFixedCosts(double foundationCost, bool performanceBond) const{
-
     double cost = (0.7 + 0.4 + 1.0) * tcc * farmSize;
 
     if (performanceBond){
+        alpha += 10.0;
         cost += 10.0 * tcc * farmSize;
     }
 
+    alpha /= 1000.0;
     cost += 0.02*foundationCost + 20000;
 
-    return cost;
+    double multiplier = 1.0/(1-alpha);
+
+    return std::make_pair(multiplier, cost);
+}
+
+//double BOS::insuranceMultiplier(bool performanceBond) const{
+//
+//    double alpha = 3.5 + 0.7 + 0.4 + 1.0;
+//
+//    if (performanceBond){
+//        alpha += 10.0;
+//    }
+//
+//    alpha /= 1000.0;
+//
+//    double multiplier = 1.0/(1-alpha);
+//
+//    return multiplier;
+//}
+//
+//double BOS::insuranceFixedCosts(double foundationCost, bool performanceBond) const{
+//
+//    double cost = (0.7 + 0.4 + 1.0) * tcc * farmSize;
+//
+//    if (performanceBond){
+//        cost += 10.0 * tcc * farmSize;
+//    }
+//
+//    cost += 0.02*foundationCost + 20000;
+//
+//    return cost;
+//}
+
+std::pair<double, double> BOS::markupMultiplierAndCosts(double transportationCost,
+    double contingency, double warranty, double useTax, double overhead,
+    double profitMargin) const{
+
+    double alpha = (contingency + warranty + useTax + overhead + profitMargin)/100.0;
+
+    double cost = -alpha * transportationCost;
+
+    double multiplier = 1.0/(1-alpha);
+
+    return std::make_pair(multiplier, cost);
 }
