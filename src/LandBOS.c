@@ -1,40 +1,31 @@
 //
-//  BOS.cpp
+//  LandBOS.c
 //  LandBOS
 //
-//  Created by Andrew Ning on 3/10/14.
+//  Created by Andrew Ning on 3/12/14.
 //  Copyright (c) 2014 NREL. All rights reserved.
 //
 
-#include "BOS.h"
+#include "LandBOS.h"
 
-BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
-         int nTurbines, double interconnectVoltage, double distToInterconnect,
-         double turbineCapitalCosts, double towerTopMass,
-         SiteTerrain siteTerrain, TurbineLayout turbineLayout,
-         SoilCondition soilCondition){
+double farmSize(double rating, int nTurb){
+    return rating * nTurb / 1000.0;
+}
 
-    rating = machineRating;
-    diameter = rotorDiameter;
-    hubHt = hubHeight;
-    nTurb = nTurbines;
-    voltage = interconnectVoltage;
-    distInter = distToInterconnect;
-    tcc = turbineCapitalCosts;
-    topMass = towerTopMass;
-    terrain = siteTerrain;
-    layout = turbineLayout;
-    soil = soilCondition;
+// Construction Time (months)
+int defaultConstructionTime(int nTurb){
+    return round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
+}
 
-    farmSize = rating * nTurb / 1000.0;
+// Access road entrances
+int defaultAccessRoadEntrances(int nTurb){
+    return fmax(1, round(nTurb/20.0));
+}
 
-    // --- set default values that can be overridden ---
+// O&M Building Size (ft2)
+double defaultBuildingSize(double farmSize){
 
-    // Construction Time (months)
-    constructionTime = round(0.0001*nTurb*nTurb + 0.0963*nTurb + 2.7432);
-
-    // Access road entrances
-    accessRoadEntrances = fmax(1, round(nTurb/20.0));
+    double buildingSize;
 
     // O&M Building Size (ft2)
     if (farmSize < 200){
@@ -49,75 +40,60 @@ BOS::BOS(double machineRating, double rotorDiameter, double hubHeight,
         buildingSize = 12000;
     }
 
-    // Quantity of Temporary Meteorological Towers for Testing
-    temporary = round(farmSize/75.0);
+    return buildingSize;
+}
 
-    // Quantity of Permanent Meteorological Towers for Testing
+// Quantity of Temporary Meteorological Towers for Testing
+int defaultTempMetTowers(double farmSize){
+    return round(farmSize/75.0);
+}
+
+// Quantity of Permanent Meteorological Towers for Testing
+int defaultPermanentMetTowers(double farmSize){
+
+    int permanent;
+
     if (farmSize < 100){
         permanent = 1;
     } else if (farmSize < 200){
         permanent = 2;
     } else{
-        permanent = int(farmSize/100.0);
+        permanent = (int)(farmSize/100.0);
     }
 
-    // Wind/Weather delay days
-    weatherDelayDays = round(nTurb/5.0);
-
-    // Crane breakdowns
-    craneBreakdowns = round(nTurb/20.0);
-
-    // ---------------------------------
-
+    return permanent;
 
 }
 
-
-void BOS::setConstructionTime(int months){
-    constructionTime = months;
+// Wind/Weather delay days
+int defaultWeatherDelayDays(int nTurb){
+    return round(nTurb/5.0);
 }
 
-void BOS::setAccessRoadEntrances(int number){
-    accessRoadEntrances = number;
-}
-
-void BOS::setBuildingSize(double sqft){
-    buildingSize = sqft;
-}
-
-void BOS::setTempTowers(double towers){
-    temporary = towers;
-}
-
-void BOS::setPermanentTowers(double towers){
-    permanent = towers;
-}
-
-void BOS::setWeatherDelays(int days){
-    weatherDelayDays = days;
-}
-
-void BOS::setCraneBreakdowns(int number){
-    craneBreakdowns = number;
+// Crane breakdowns
+int defaultCraneBreakdowns(int nTurb){
+    return round(nTurb/20.0);
 }
 
 
 
-double BOS::transportationCost(double transportationDistance) const{
+
+double transportationCost(double tcc, double rating, int nTurb,
+        double hubHt, double transportDist){
 
     double cost = tcc * rating * nTurb;
 
     if (rating < 2500 && hubHt < 100) {
-        cost += 1349*pow(transportationDistance, 0.746) * nTurb;
+        cost += 1349*pow(transportDist, 0.746) * nTurb;
     } else {
-        cost += 1867*pow(transportationDistance, 0.726) * nTurb;
+        cost += 1867*pow(transportDist, 0.726) * nTurb;
     }
 
     return cost;
 }
 
 
-double BOS::engineeringCost() const{
+double engineeringCost(int nTurb, double farmSize){
 
     double cost = 7188.5 * nTurb;
 
@@ -133,7 +109,8 @@ double BOS::engineeringCost() const{
 }
 
 
-double BOS::powerPerformanceCost() const{
+double powerPerformanceCost(double hubHt, double permanent,
+        double temporary){
 
     double multiplier1 = 290000;
     double multiplier2 = 116800;
@@ -148,7 +125,9 @@ double BOS::powerPerformanceCost() const{
 }
 
 
-double BOS::accessRoadsCost() const{
+double accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double diameter, int constructionTime,
+        int accessRoadEntrances){
 
     double factor1 = 0.0;
     double factor2 = 0.0;
@@ -178,14 +157,16 @@ double BOS::accessRoadsCost() const{
         }
     }
 
-    double cost = (nTurb*factor1 + nTurb*diameter*factor2 + constructionTime*55500
+    double cost = (nTurb*factor1 + nTurb*diameter*factor2
+                   + constructionTime*55500
                    + accessRoadEntrances*3800)*1.05;
 
     return cost;
 }
 
 
-double BOS::siteCompoundCost() const{
+double siteCompoundCost(int accessRoadEntrances, int constructionTime,
+        double farmSize){
 
     double cost = 9825.0*accessRoadEntrances + 29850.0*constructionTime;
 
@@ -211,7 +192,7 @@ double BOS::siteCompoundCost() const{
 }
 
 
-double BOS::buildingCost() const{
+double buildingCost(double buildingSize){
 
     double cost = buildingSize*125 + 176125;
 
@@ -219,10 +200,11 @@ double BOS::buildingCost() const{
 
 }
 
-double BOS::foundationCost() const{
+double foundationCost(double rating, double diameter, double topMass,
+        double hubHt, SoilCondition soil, int nTurb){
 
     double cost = rating*diameter*topMass/1000.0
-        + 163421.5*pow(nTurb, -0.1458) + (hubHt-80)*500;
+    + 163421.5*pow(nTurb, -0.1458) + (hubHt-80)*500;
 
     if (soil == BOUYANT){
         cost += 20000;
@@ -234,7 +216,8 @@ double BOS::foundationCost() const{
 }
 
 
-double BOS::erectionCost(bool deliveryAssistRequired) const{
+double erectionCost(double rating, double hubHt, int nTurb, int weatherDelayDays,
+        int craneBreakdowns, int deliveryAssistRequired){
 
     double cost = (37*rating + 27000*pow(nTurb, -0.42145) + (hubHt-80)*500)*nTurb;
 
@@ -248,8 +231,9 @@ double BOS::erectionCost(bool deliveryAssistRequired) const{
 }
 
 
-double BOS::electricalMaterialsCost(bool padMountTransformer,
-    double thermalBackfill) const{
+double electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
+        double farmSize, double diameter, int nTurb, int padMountTransformer,
+        double thermalBackfill){
 
     double factor1 = 0.0;
     double factor2 = 0.0;
@@ -293,14 +277,15 @@ double BOS::electricalMaterialsCost(bool padMountTransformer,
         cost = nTurb*factor2;
     }
     cost += round(farmSize/25.0)*35375 + round(farmSize/100.0)*50000
-        + diameter*nTurb*factor3 + thermalBackfill*5 + 41945;
+    + diameter*nTurb*factor3 + thermalBackfill*5 + 41945;
 
     return cost;
 }
 
 
-double BOS::electricalInstallationCost(double rockTrenchingLength,
-    double overheadCollector) const{
+double electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
+        double farmSize, double diameter, int nTurb,
+        double rockTrenchingLength, double overheadCollector){
 
     double factor1 = 0.0;
     double factor2 = 0.0;
@@ -337,7 +322,7 @@ double BOS::electricalInstallationCost(double rockTrenchingLength,
         }
     }
 
-    double cost = int(farmSize/25.0)*14985;
+    double cost = (int)(farmSize/25.0)*14985;
 
     if (farmSize > 200){
         cost += 300000;
@@ -346,13 +331,13 @@ double BOS::electricalInstallationCost(double rockTrenchingLength,
     }
 
     cost += nTurb*(factor1 + diameter*(factor2 + factor3*rockTrenchingLength/100.0))
-        + overheadCollector*200000 + 10000;
+    + overheadCollector*200000 + 10000;
 
     return cost;
 }
 
 
-double BOS::substationCost() const{
+double substationCost(double voltage, double farmSize){
 
     double cost = 11652*(voltage+farmSize) + 11795*pow(farmSize, 0.3549) + 1526800;
 
@@ -360,7 +345,8 @@ double BOS::substationCost() const{
 }
 
 
-double BOS::transmissionCost(bool newSwitchyardRequired) const{
+double transmissionCost(double voltage, double distInter,
+        int newSwitchyardRequired){
 
     double cost = 0.0;
 
@@ -377,12 +363,12 @@ double BOS::transmissionCost(bool newSwitchyardRequired) const{
 
 
 
-double BOS::projectMgmtCost() const{
+double projectMgmtCost(int constructionTime){
 
     double cost;
     if (constructionTime < 28){
         cost = (53.333*constructionTime*constructionTime - 3442*constructionTime
-            + 209542)*(constructionTime + 2);
+                + 209542)*(constructionTime + 2);
     } else{
         cost = (constructionTime + 2)*155000;
     }
@@ -391,14 +377,14 @@ double BOS::projectMgmtCost() const{
 }
 
 
-double BOS::developmentCost(double developmentFee) const{
+double developmentCost(double developmentFee){
 
     return developmentFee*1000000;
 }
 
 
-MultCost BOS::insuranceMultiplierAndCost(double foundationCost,
-    bool performanceBond) const{
+MultCost insuranceMultiplierAndCost(double tcc, double farmSize,
+        double foundationCost, int performanceBond){
 
     MultCost result;
 
@@ -417,9 +403,8 @@ MultCost BOS::insuranceMultiplierAndCost(double foundationCost,
 }
 
 
-MultCost BOS::markupMultiplierAndCost(double transportationCost,
-    double contingency, double warranty, double useTax, double overhead,
-    double profitMargin) const{
+MultCost markupMultiplierAndCost(double transportationCost, double contingency,
+        double warranty, double useTax, double overhead, double profitMargin){
 
     MultCost result;
 
@@ -432,47 +417,55 @@ MultCost BOS::markupMultiplierAndCost(double transportationCost,
 }
 
 
-double BOS::totalCost(bool deliveryAssistRequired, bool padMountTransformer,
-                      bool newSwitchyardRequired, double rockTrenchingLength,
-                      double thermalBackfill, double overheadCollector,
-                      bool performanceBond, double contingency, double warranty,
-                      double useTax, double overhead, double profitMargin,
-                      double developmentFee, double transportationDistance) const{
+// double totalCost(double rating, double diameter, double hubHt,
+//         int nTurb, double voltage, double distInter,
+//         SiteTerrain terrain, TurbineLayout layout, SoilCondition soil,
+//         double farmSize, double tcc, double topMass,
+//         int constructionTime, double buildingSize, double temporary,
+//         double permanent, int weatherDelayDays, int craneBreakdowns
+//         int accessRoadEntrances,
+//         int deliveryAssistRequired, int padMountTransformer,
+//         int newSwitchyardRequired, double rockTrenchingLength,
+//         double thermalBackfill, double overheadCollector,
+//         int performanceBond, double contingency, double warranty,
+//         double useTax, double overhead, double profitMargin,
+//         double developmentFee, double transportDist){
 
-    double cost = 0.0;
-    double alpha = 0.0;
+//     double cost = 0.0;
+//     double alpha = 0.0;
 
-    double transCost = transportationCost(transportationDistance);
-    cost += transCost;
-    cost += engineeringCost();
-    cost += powerPerformanceCost();
-    cost += siteCompoundCost();
-    cost += buildingCost();
-    cost += transmissionCost(newSwitchyardRequired);
-    cost += developmentCost(developmentFee);
-    cost += accessRoadsCost();
-    double foundCost = foundationCost();
-    cost += foundCost;
-    cost += erectionCost(deliveryAssistRequired);
-    cost += electricalMaterialsCost(padMountTransformer, thermalBackfill);
-    cost += electricalInstallationCost(rockTrenchingLength, overheadCollector);
-    cost += substationCost();
-    cost += projectMgmtCost();
+//     double transCost = transportationCost(double tcc, double rating, int nTurb,
+//         double hubHt, double transportDist);
+//     cost += transCost;
+//     cost += engineeringCost(int nTurb, double farmSize);
+//     cost += powerPerformanceCost();
+//     cost += siteCompoundCost();
+//     cost += buildingCost();
+//     cost += transmissionCost(newSwitchyardRequired);
+//     cost += developmentCost(developmentFee);
+//     cost += accessRoadsCost();
+//     double foundCost = foundationCost();
+//     cost += foundCost;
+//     cost += erectionCost(deliveryAssistRequired);
+//     cost += electricalMaterialsCost(padMountTransformer, thermalBackfill);
+//     cost += electricalInstallationCost(rockTrenchingLength, overheadCollector);
+//     cost += substationCost();
+//     cost += projectMgmtCost();
 
 
-    MultCost result;
-    result = insuranceMultiplierAndCost(foundCost, performanceBond);
-    cost += result.cost;
-    alpha += result.alpha;
+//     MultCost result;
+//     result = insuranceMultiplierAndCost(foundCost, performanceBond);
+//     cost += result.cost;
+//     alpha += result.alpha;
 
-    result = markupMultiplierAndCost(transCost, contingency, warranty, useTax,
-                                     overhead, profitMargin);
-    cost += result.cost;
-    alpha += result.alpha;
+//     result = markupMultiplierAndCost(transCost, contingency, warranty, useTax,
+//                                      overhead, profitMargin);
+//     cost += result.cost;
+//     alpha += result.alpha;
 
-    // multiplier
-    cost /= (1.0 - alpha);
+//     // multiplier
+//     cost /= (1.0 - alpha);
 
-    return cost;
+//     return cost;
 
-}
+// }
