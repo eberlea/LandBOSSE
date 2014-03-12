@@ -417,55 +417,54 @@ MultCost markupMultiplierAndCost(double transportationCost, double contingency,
 }
 
 
-// double totalCost(double rating, double diameter, double hubHt,
-//         int nTurb, double voltage, double distInter,
-//         SiteTerrain terrain, TurbineLayout layout, SoilCondition soil,
-//         double farmSize, double tcc, double topMass,
-//         int constructionTime, double buildingSize, double temporary,
-//         double permanent, int weatherDelayDays, int craneBreakdowns
-//         int accessRoadEntrances,
-//         int deliveryAssistRequired, int padMountTransformer,
-//         int newSwitchyardRequired, double rockTrenchingLength,
-//         double thermalBackfill, double overheadCollector,
-//         int performanceBond, double contingency, double warranty,
-//         double useTax, double overhead, double profitMargin,
-//         double developmentFee, double transportDist){
+double totalCost(double rating, double diameter, double hubHt,
+        int nTurb, double voltage, double distInter,
+        SiteTerrain terrain, TurbineLayout layout, SoilCondition soil,
+        double farmSize, double tcc, double topMass,
+        int constructionTime, double buildingSize, double temporary,
+        double permanent, int weatherDelayDays, int craneBreakdowns,
+        int accessRoadEntrances,
+        int deliveryAssistRequired, int padMountTransformer,
+        int newSwitchyardRequired, double rockTrenchingLength,
+        double thermalBackfill, double overheadCollector,
+        int performanceBond, double contingency, double warranty,
+        double useTax, double overhead, double profitMargin,
+        double developmentFee, double transportDist){
 
-//     double cost = 0.0;
-//     double alpha = 0.0;
+    double cost = 0.0;
+    double alpha = 0.0;
 
-//     double transCost = transportationCost(double tcc, double rating, int nTurb,
-//         double hubHt, double transportDist);
-//     cost += transCost;
-//     cost += engineeringCost(int nTurb, double farmSize);
-//     cost += powerPerformanceCost();
-//     cost += siteCompoundCost();
-//     cost += buildingCost();
-//     cost += transmissionCost(newSwitchyardRequired);
-//     cost += developmentCost(developmentFee);
-//     cost += accessRoadsCost();
-//     double foundCost = foundationCost();
-//     cost += foundCost;
-//     cost += erectionCost(deliveryAssistRequired);
-//     cost += electricalMaterialsCost(padMountTransformer, thermalBackfill);
-//     cost += electricalInstallationCost(rockTrenchingLength, overheadCollector);
-//     cost += substationCost();
-//     cost += projectMgmtCost();
+    double transCost = transportationCost(tcc, rating, nTurb,
+        hubHt, transportDist);
+    cost += transCost;
+    cost += engineeringCost(nTurb, farmSize);
+    cost += powerPerformanceCost(hubHt, permanent, temporary);
+    cost += siteCompoundCost(accessRoadEntrances, constructionTime, farmSize);
+    cost += buildingCost(buildingSize);
+    cost += transmissionCost(voltage, distInter, newSwitchyardRequired);
+    cost += developmentCost(developmentFee);
+    cost += accessRoadsCost(terrain, layout, nTurb, diameter, constructionTime, accessRoadEntrances);
+    double foundCost = foundationCost(rating, diameter, topMass, hubHt, soil, nTurb);
+    cost += foundCost;
+    cost += erectionCost(rating, hubHt, nTurb, weatherDelayDays, craneBreakdowns, deliveryAssistRequired);
+    cost += electricalMaterialsCost(terrain, layout, farmSize, diameter, nTurb, padMountTransformer, thermalBackfill);
+    cost += electricalInstallationCost(terrain, layout, farmSize, diameter, nTurb, rockTrenchingLength, overheadCollector);
+    cost += substationCost(voltage, farmSize);
+    cost += projectMgmtCost(constructionTime);
 
 
-//     MultCost result;
-//     result = insuranceMultiplierAndCost(foundCost, performanceBond);
-//     cost += result.cost;
-//     alpha += result.alpha;
+    MultCost result;
+    result = insuranceMultiplierAndCost(tcc, farmSize, foundCost, performanceBond);
+    cost += result.cost;
+    alpha += result.alpha;
 
-//     result = markupMultiplierAndCost(transCost, contingency, warranty, useTax,
-//                                      overhead, profitMargin);
-//     cost += result.cost;
-//     alpha += result.alpha;
+    result = markupMultiplierAndCost(transCost, contingency, warranty, useTax, overhead, profitMargin);
+    cost += result.cost;
+    alpha += result.alpha;
 
-//     // multiplier
-//     cost /= (1.0 - alpha);
+    // multiplier
+    cost /= (1.0 - alpha);
 
-//     return cost;
+    return cost;
 
-// }
+}

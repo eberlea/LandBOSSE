@@ -14,7 +14,6 @@
 typedef enum {FLAT_TO_ROLLING, RIDGE_TOP, MOUNTAINOUS} SiteTerrain;
 typedef enum {SIMPLE, COMPLEX} TurbineLayout;
 typedef enum {STANDARD, BOUYANT} SoilCondition;
-// typedef enum {false, true} bool;
 
 typedef struct{
     double alpha;
@@ -96,5 +95,18 @@ MultCost markupMultiplierAndCost(double transportationCost, double contingency,
         double warranty, double useTax, double overhead, double profitMargin);
 
 
+double totalCost(double rating, double diameter, double hubHt,
+        int nTurb, double voltage, double distInter,
+        SiteTerrain terrain, TurbineLayout layout, SoilCondition soil,
+        double farmSize, double tcc, double topMass,
+        int constructionTime, double buildingSize, double temporary,
+        double permanent, int weatherDelayDays, int craneBreakdowns,
+        int accessRoadEntrances,
+        int deliveryAssistRequired, int padMountTransformer,
+        int newSwitchyardRequired, double rockTrenchingLength,
+        double thermalBackfill, double overheadCollector,
+        int performanceBond, double contingency, double warranty,
+        double useTax, double overhead, double profitMargin,
+        double developmentFee, double transportDist);
 
 #endif

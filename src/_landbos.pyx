@@ -1,5 +1,4 @@
 # distutils: language = c
-# distutils: sources = src/LandBOS.c
 
 cimport c_landbos
 
@@ -119,4 +118,28 @@ def markupMultiplierAndCost(double transportationCost, double contingency=3.0,
         double profitMargin=5.0):
     return c_landbos.markupMultiplierAndCost(transportationCost, contingency,
         warranty, useTax, overhead, profitMargin)
+
+
+def totalCost(double rating, double diameter, double hubHt,
+        int nTurb, double voltage, double distInter,
+        c_landbos.SiteTerrain terrain, c_landbos.TurbineLayout layout,
+        c_landbos.SoilCondition soil,
+        double farmSize, double tcc, double topMass,
+        int constructionTime, double buildingSize, double temporary,
+        double permanent, int weatherDelayDays, int craneBreakdowns,
+        int accessRoadEntrances,
+        bint deliveryAssistRequired=False, bint padMountTransformer=True,
+        bint newSwitchyardRequired=True, double rockTrenchingLength=10.0,
+        double thermalBackfill=0.0, double overheadCollector=0.0,
+        bint performanceBond=False, double contingency=3.0, double warranty=0.02,
+        double useTax=0.0, double overhead=5.0, double profitMargin=5.0,
+        double developmentFee=5.0, double transportDist=0.0):
+    return c_landbos.totalCost(rating, diameter, hubHt,
+        nTurb, voltage, distInter, terrain, layout, soil,
+        farmSize, tcc, topMass, constructionTime, buildingSize,
+        temporary, permanent, weatherDelayDays, craneBreakdowns,
+        accessRoadEntrances, deliveryAssistRequired, padMountTransformer,
+        newSwitchyardRequired, rockTrenchingLength, thermalBackfill,
+        overheadCollector, performanceBond, contingency, warranty,
+        useTax, overhead, profitMargin, developmentFee, transportDist)
 
