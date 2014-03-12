@@ -218,16 +218,39 @@ class TestDefaultCosts(unittest.TestCase):
     def test_insurance(self):
         fcost = self.bos.foundationCost()
 
-        yo = self.bos.insuranceMultiplierAndCost(fcost,
+        values = self.bos.insuranceMultiplierAndCost(fcost,
                                    performanceBond=False)
-        print yo['cost']
-        print yo['alpha']*self.bos.totalCost()
-        print yo['cost'] + yo['alpha']*self.bos.totalCost()
+
+        cost = values['cost'] + values['alpha']*self.bos.totalCost()
+
+        self.assertAlmostEqual(2265350, cost, delta=0.5)
+
+
+    def test_insurance2(self):
+        fcost = self.bos.foundationCost()
+
+        values = self.bos.insuranceMultiplierAndCost(fcost,
+                                   performanceBond=True)
+
+        cost = values['cost'] + values['alpha']*self.bos.totalCost(performanceBond=True)
+
+        self.assertAlmostEqual(7210510, cost, delta=0.5)
+
+
+    def test_markup(self):
+        tcost = self.bos.transportationCost()
+
+        values = self.bos.markupMultiplierAndCost(tcost)
+
+        cost = values['cost'] + values['alpha']*self.bos.totalCost()
+
+        self.assertAlmostEqual(11151202, cost, delta=0.5)
+
 
     def test_totalCost(self):
 
         cost = self.bos.totalCost()
-        self.assertAlmostEqual(286646600, cost, delta=0.5)
+        self.assertAlmostEqual(285646716, cost, delta=0.5)
 
 
 
