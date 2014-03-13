@@ -109,8 +109,8 @@ double engineeringCost(int nTurb, double farmSize){
 }
 
 
-double powerPerformanceCost(double hubHt, double permanent,
-        double temporary){
+double powerPerformanceCost(double hubHt, int permanent,
+        int temporary){
 
     double multiplier1 = 290000;
     double multiplier2 = 116800;

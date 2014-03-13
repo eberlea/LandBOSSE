@@ -53,8 +53,8 @@ double transportationCost(double tcc, double rating, int nTurb,
 
 double engineeringCost(int nTurb, double farmSize);
 
-double powerPerformanceCost(double hubHt, double permanent,
-        double temporary);
+double powerPerformanceCost(double hubHt, int permanent,
+        int temporary);
 
 double accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
         int nTurb, double diameter, int constructionTime,
