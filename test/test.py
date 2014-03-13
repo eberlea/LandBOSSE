@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-untitled.py
+test.py
 
 Created by Andrew Ning on 2014-03-11.
 Copyright (c) NREL. All rights reserved.

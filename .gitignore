@@ -1,6 +1,7 @@
 *.xcodeproj
 .DS_Store
 openmdao_log.txt
+*.pyc
 
 # Compiled Object files
 *.slo

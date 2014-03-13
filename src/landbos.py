@@ -13,6 +13,10 @@ from openmdao.main.datatypes.api import Int, Float, Enum, Bool
 import _landbos
 
 
+def Enum2Int(component, trait):
+    return component.get_trait(trait).values.index(getattr(component, trait))
+
+
 class FarmSize(Component):
 
     rating = Float(iotype='in', units='kW', desc='machine rating')
@@ -137,9 +141,9 @@ class PowerPerformance(Component):
 
 class AccessRoads(Component):
 
-    terrain = Enum(0, (0, 1, 2), iotype='in', aliases=('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
-        desc='terrain options')
-    layout = Enum(0, (0, 1), iotype='in', aliases=('SIMPLE', 'COMPLEX'),
+    terrain = Enum('FLAT_TO_ROLLING', ('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
+        iotype='in', desc='terrain options')
+    layout = Enum('SIMPLE', ('SIMPLE', 'COMPLEX'), iotype='in',
         desc='layout options')
     nTurbines = Int(iotype='in', desc='number of turbines')
     diameter = Float(iotype='in', units='m', desc='rotor diameter')
@@ -149,9 +153,9 @@ class AccessRoads(Component):
     cost = Float(iotype='out', units='USD', desc='access roads and site improvement cost')
 
     def execute(self):
-        self.cost = _landbos.accessRoadsCost(self.terrain, self.layout,
-            self.nTurbines, self.diameter, self.constructionTime,
-            self.accessRoadEntrances)
+        self.cost = _landbos.accessRoadsCost(Enum2Int(self, 'terrain'),
+            Enum2Int(self, 'layout'), self.nTurbines, self.diameter,
+            self.constructionTime, self.accessRoadEntrances)
 
 
 class SiteCompound(Component):
@@ -183,7 +187,7 @@ class Foundations(Component):
     diameter = Float(iotype='in', units='m', desc='rotor diameter')
     topMass = Float(iotype='in', units='t', desc='tower top mass (tonnes)')
     hubHeight = Float(iotype='in', units='m', desc='hub height')
-    soil = Enum(0, (0, 1), iotype='in', aliases=('STANDARD', 'BOUYANT'),
+    soil = Enum('STANDARD', ('STANDARD', 'BOUYANT'), iotype='in',
         desc='soil options')
     nTurbines = Int(iotype='in', desc='number of turbines')
 
@@ -191,7 +195,7 @@ class Foundations(Component):
 
     def execute(self):
         self.cost = _landbos.foundationCost(self.rating, self.diameter,
-            self.topMass, self.hubHeight, self.soil, self.nTurbines)
+            self.topMass, self.hubHeight, Enum2Int(self, 'soil'), self.nTurbines)
 
 
 class Erection(Component):
@@ -213,9 +217,9 @@ class Erection(Component):
 
 class ElecMaterials(Component):
 
-    terrain = Enum(0, (0, 1, 2), iotype='in', aliases=('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
-        desc='terrain options')
-    layout = Enum(0, (0, 1), iotype='in', aliases=('SIMPLE', 'COMPLEX'),
+    terrain = Enum('FLAT_TO_ROLLING', ('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
+        iotype='in', desc='terrain options')
+    layout = Enum('SIMPLE', ('SIMPLE', 'COMPLEX'), iotype='in',
         desc='layout options')
     farmSize = Float(iotype='in', units='MW', desc='wind farm size')
     diameter = Float(iotype='in', units='m', desc='rotor diameter')
@@ -226,16 +230,16 @@ class ElecMaterials(Component):
     cost = Float(iotype='out', units='USD', desc='MV electrical materials cost')
 
     def execute(self):
-        self.cost = _landbos.electricalMaterialsCost(self.terrain, self.layout,
-        self.farmSize, self.diameter, self.nTurbines, self.padMountTransformer,
-        self.thermalBackfill)
+        self.cost = _landbos.electricalMaterialsCost(Enum2Int(self, 'terrain'),
+            Enum2Int(self, 'layout'), self.farmSize, self.diameter, self.nTurbines,
+            self.padMountTransformer, self.thermalBackfill)
 
 
 class ElecInstallation(Component):
 
-    terrain = Enum(0, (0, 1, 2), iotype='in', aliases=('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
-        desc='terrain options')
-    layout = Enum(0, (0, 1), iotype='in', aliases=('SIMPLE', 'COMPLEX'),
+    terrain = Enum('FLAT_TO_ROLLING', ('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
+        iotype='in', desc='terrain options')
+    layout = Enum('SIMPLE', ('SIMPLE', 'COMPLEX'), iotype='in',
         desc='layout options')
     farmSize = Float(iotype='in', units='MW', desc='wind farm size')
     diameter = Float(iotype='in', units='m', desc='rotor diameter')
@@ -246,9 +250,9 @@ class ElecInstallation(Component):
     cost = Float(iotype='out', units='USD', desc='MV electrical materials cost')
 
     def execute(self):
-        self.cost = _landbos.electricalInstallationCost(self.terrain, self.layout,
-        self.farmSize, self.diameter, self.nTurbines,
-        self.rockTrenchingLength, self.overheadCollector)
+        self.cost = _landbos.electricalInstallationCost(Enum2Int(self, 'terrain'),
+            Enum2Int(self, 'layout'), self.farmSize, self.diameter, self.nTurbines,
+            self.rockTrenchingLength, self.overheadCollector)
 
 
 class Substation(Component):
@@ -379,11 +383,11 @@ class LandBOS(Assembly):
     nTurbines = Int(iotype='in', desc='number of turbines')
     voltage = Float(iotype='in', units='kV', desc='interconnect voltage')
     distInter = Float(iotype='in', units='mi', desc='distance to interconnect')
-    terrain = Enum(0, (0, 1, 2), iotype='in', aliases=('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
-        desc='terrain options')
-    layout = Enum(0, (0, 1), iotype='in', aliases=('SIMPLE', 'COMPLEX'),
+    terrain = Enum('FLAT_TO_ROLLING', ('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
+        iotype='in', desc='terrain options')
+    layout = Enum('SIMPLE', ('SIMPLE', 'COMPLEX'), iotype='in',
         desc='layout options')
-    soil = Enum(0, (0, 1), iotype='in', aliases=('STANDARD', 'BOUYANT'),
+    soil = Enum('STANDARD', ('STANDARD', 'BOUYANT'), iotype='in',
         desc='soil options')
 
     TCC = Float(iotype='in', units='USD/kW', desc='turbine capital cost per kW')
@@ -414,6 +418,8 @@ class LandBOS(Assembly):
     profitMargin = Float(5.0, iotype='in', desc='%')
     developmentFee = Float(5.0, iotype='in', desc='development fee (in millions of dollars)')
     transportDist = Float(0.0, iotype='in', units='mi', desc='transportation distance')
+
+    cost = Float(iotype='out', units='USD', desc='total BOS cost')
 
     def configure(self):
 
@@ -573,6 +579,10 @@ class LandBOS(Assembly):
         self.connect('insurance.alpha', 'total.insurance_alpha')
         self.connect('markup.alpha', 'total.markup_alpha')
 
+        # connections to outputs
+        self.connect('total.cost', 'cost')
+
+
 
 
 if __name__ == '__main__':
@@ -584,12 +594,12 @@ if __name__ == '__main__':
     bos.nTurbines = 100
     bos.voltage = 137
     bos.distInter = 5
-    bos.terrain = 0 #'FLAT_TO_ROLLING'
-    bos.layout = 1 #'COMPLEX'
-    bos.soil = 0 #'STANDARD'
+    bos.terrain = 'FLAT_TO_ROLLING'
+    bos.layout = 'COMPLEX'
+    bos.soil = 'STANDARD'
     bos.TCC = 1000.0
     bos.topMass = 88.0
 
     bos.run()
 
-    print bos.total.cost
+    print bos.cost
