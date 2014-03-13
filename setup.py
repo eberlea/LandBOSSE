@@ -26,6 +26,12 @@ if USE_CYTHON:
     extensions = cythonize(extensions)
 
 setup(
-    name = 'LandBOS',
-    ext_modules = extensions
+    name='LandBOS',
+    description='a translation of the NREL land-based balance of station excel model',
+    author='S. Andrew Ning',
+    author_email='andrew.ning@nrel.gov',
+    package_dir={'': 'src'},
+    py_modules=['landbos'],
+    license='Apache License, Version 2.0',
+    ext_modules=extensions
 )
