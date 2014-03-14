@@ -185,7 +185,7 @@ class Foundations(Component):
 
     rating = Float(iotype='in', units='kW', desc='machine rating')
     diameter = Float(iotype='in', units='m', desc='rotor diameter')
-    topMass = Float(iotype='in', units='t', desc='tower top mass (tonnes)')
+    topMass = Float(iotype='in', units='kg', desc='tower top mass (tonnes)')
     hubHeight = Float(iotype='in', units='m', desc='hub height')
     soil = Enum('STANDARD', ('STANDARD', 'BOUYANT'), iotype='in',
         desc='soil options')
@@ -195,7 +195,7 @@ class Foundations(Component):
 
     def execute(self):
         self.cost = _landbos.foundationCost(self.rating, self.diameter,
-            self.topMass, self.hubHeight, Enum2Int(self, 'soil'), self.nTurbines)
+            self.topMass/1000.0, self.hubHeight, Enum2Int(self, 'soil'), self.nTurbines)
 
 
 class Erection(Component):
@@ -377,10 +377,10 @@ class Total(Component):
 
 class LandBOS(Assembly):
 
-    rating = Float(iotype='in', units='kW', desc='machine rating')
-    diameter = Float(iotype='in', units='m', desc='rotor diameter')
-    hubHeight = Float(iotype='in', units='m', desc='hub height')
-    nTurbines = Int(iotype='in', desc='number of turbines')
+    machine_rating = Float(iotype='in', units='kW', desc='machine rating')
+    rotor_diameter = Float(iotype='in', units='m', desc='rotor diameter')
+    hub_height = Float(iotype='in', units='m', desc='hub height')
+    turbine_number = Int(iotype='in', desc='number of turbines')
     voltage = Float(iotype='in', units='kV', desc='interconnect voltage')
     distInter = Float(iotype='in', units='mi', desc='distance to interconnect')
     terrain = Enum('FLAT_TO_ROLLING', ('FLAT_TO_ROLLING', 'RIDGE_TOP', 'MOUNTAINOUS'),
@@ -390,8 +390,9 @@ class LandBOS(Assembly):
     soil = Enum('STANDARD', ('STANDARD', 'BOUYANT'), iotype='in',
         desc='soil options')
 
-    TCC = Float(iotype='in', units='USD/kW', desc='turbine capital cost per kW')
-    topMass = Float(iotype='in', units='t', desc='tower top mass (tonnes)')
+    turbine_cost = Float(iotype='in', units='USD')
+    # TCC = Float(iotype='in', units='USD/kW', desc='turbine capital cost per kW')
+    RNA_mass = Float(iotype='in', units='kg', desc='tower top mass')
 
     # If left at default of -1 then these values will be calculated
     # otherwise override with whatever you want
@@ -419,7 +420,7 @@ class LandBOS(Assembly):
     developmentFee = Float(5.0, iotype='in', desc='development fee (in millions of dollars)')
     transportDist = Float(0.0, iotype='in', units='mi', desc='transportation distance')
 
-    cost = Float(iotype='out', units='USD', desc='total BOS cost')
+    bos_costs = Float(iotype='out', units='USD', desc='total BOS cost')
 
     def configure(self):
 
@@ -450,11 +451,11 @@ class LandBOS(Assembly):
             'projmgmt', 'development', 'insurance', 'markup', 'total'])
 
         # connections to fs
-        self.connect('rating', 'fs.rating')
-        self.connect('nTurbines', 'fs.nTurbines')
+        self.connect('machine_rating', 'fs.rating')
+        self.connect('turbine_number', 'fs.nTurbines')
 
         # connections to default
-        self.connect('nTurbines', 'default.nTurbines')
+        self.connect('turbine_number', 'default.nTurbines')
         self.connect('fs.farmSize', 'default.farmSize')
         self.connect('constructionTime', 'default.override_constructionTime')
         self.connect('accessRoadEntrances', 'default.override_accessRoadEntrances')
@@ -465,26 +466,26 @@ class LandBOS(Assembly):
         self.connect('tempMetTowers', 'default.override_tempMetTowers')
 
         # connections to transportation
-        self.connect('TCC', 'transportation.TCC')
-        self.connect('rating', 'transportation.rating')
-        self.connect('nTurbines', 'transportation.nTurbines')
-        self.connect('hubHeight', 'transportation.hubHeight')
+        self.connect('turbine_cost/machine_rating', 'transportation.TCC')
+        self.connect('machine_rating', 'transportation.rating')
+        self.connect('turbine_number', 'transportation.nTurbines')
+        self.connect('hub_height', 'transportation.hubHeight')
         self.connect('transportDist', 'transportation.transportDist')
 
         # connections to engineering
-        self.connect('nTurbines', 'engineering.nTurbines')
+        self.connect('turbine_number', 'engineering.nTurbines')
         self.connect('fs.farmSize', 'engineering.farmSize')
 
         # connections to powerperf
-        self.connect('hubHeight', 'powerperf.hubHeight')
+        self.connect('hub_height', 'powerperf.hubHeight')
         self.connect('default.permanentMetTowers', 'powerperf.permanentMetTowers')
         self.connect('default.tempMetTowers', 'powerperf.tempMetTowers')
 
         # connections to roads
         self.connect('terrain', 'roads.terrain')
         self.connect('layout', 'roads.layout')
-        self.connect('nTurbines', 'roads.nTurbines')
-        self.connect('diameter', 'roads.diameter')
+        self.connect('turbine_number', 'roads.nTurbines')
+        self.connect('rotor_diameter', 'roads.diameter')
         self.connect('default.constructionTime', 'roads.constructionTime')
         self.connect('default.accessRoadEntrances', 'roads.accessRoadEntrances')
 
@@ -497,17 +498,17 @@ class LandBOS(Assembly):
         self.connect('default.buildingSize', 'building.buildingSize')
 
         # connections to foundation
-        self.connect('rating', 'foundation.rating')
-        self.connect('diameter', 'foundation.diameter')
-        self.connect('topMass', 'foundation.topMass')
-        self.connect('hubHeight', 'foundation.hubHeight')
+        self.connect('machine_rating', 'foundation.rating')
+        self.connect('rotor_diameter', 'foundation.diameter')
+        self.connect('RNA_mass', 'foundation.topMass')
+        self.connect('hub_height', 'foundation.hubHeight')
         self.connect('soil', 'foundation.soil')
-        self.connect('nTurbines', 'foundation.nTurbines')
+        self.connect('turbine_number', 'foundation.nTurbines')
 
         # connections to erection
-        self.connect('rating', 'erection.rating')
-        self.connect('hubHeight', 'erection.hubHeight')
-        self.connect('nTurbines', 'erection.nTurbines')
+        self.connect('machine_rating', 'erection.rating')
+        self.connect('hub_height', 'erection.hubHeight')
+        self.connect('turbine_number', 'erection.nTurbines')
         self.connect('default.weatherDelayDays', 'erection.weatherDelayDays')
         self.connect('default.craneBreakdowns', 'erection.craneBreakdowns')
         self.connect('deliveryAssistRequired', 'erection.deliveryAssistRequired')
@@ -516,8 +517,8 @@ class LandBOS(Assembly):
         self.connect('terrain', 'elecmat.terrain')
         self.connect('layout', 'elecmat.layout')
         self.connect('fs.farmSize', 'elecmat.farmSize')
-        self.connect('diameter', 'elecmat.diameter')
-        self.connect('nTurbines', 'elecmat.nTurbines')
+        self.connect('rotor_diameter', 'elecmat.diameter')
+        self.connect('turbine_number', 'elecmat.nTurbines')
         self.connect('padMountTransformer', 'elecmat.padMountTransformer')
         self.connect('thermalBackfill', 'elecmat.thermalBackfill')
 
@@ -525,8 +526,8 @@ class LandBOS(Assembly):
         self.connect('terrain', 'elecinst.terrain')
         self.connect('layout', 'elecinst.layout')
         self.connect('fs.farmSize', 'elecinst.farmSize')
-        self.connect('diameter', 'elecinst.diameter')
-        self.connect('nTurbines', 'elecinst.nTurbines')
+        self.connect('rotor_diameter', 'elecinst.diameter')
+        self.connect('turbine_number', 'elecinst.nTurbines')
         self.connect('rockTrenchingLength', 'elecinst.rockTrenchingLength')
         self.connect('overheadCollector', 'elecinst.overheadCollector')
 
@@ -546,7 +547,7 @@ class LandBOS(Assembly):
         self.connect('developmentFee', 'development.developmentFee')
 
         # connections to insurance
-        self.connect('TCC', 'insurance.TCC')
+        self.connect('turbine_cost/machine_rating', 'insurance.TCC')
         self.connect('fs.farmSize', 'insurance.farmSize')
         self.connect('foundation.cost', 'insurance.foundationCost')
         self.connect('performanceBond', 'insurance.performanceBond')
@@ -580,7 +581,7 @@ class LandBOS(Assembly):
         self.connect('markup.alpha', 'total.markup_alpha')
 
         # connections to outputs
-        self.connect('total.cost', 'cost')
+        self.connect('total.cost', 'bos_costs')
 
 
 
@@ -588,18 +589,19 @@ class LandBOS(Assembly):
 if __name__ == '__main__':
 
     bos = LandBOS()
-    bos.rating = 2000
-    bos.diameter = 110
-    bos.hubHeight = 100
-    bos.nTurbines = 100
+    bos.machine_rating = 2000
+    bos.rotor_diameter = 110
+    bos.hub_height = 100
+    bos.turbine_number = 100
     bos.voltage = 137
     bos.distInter = 5
     bos.terrain = 'FLAT_TO_ROLLING'
     bos.layout = 'COMPLEX'
     bos.soil = 'STANDARD'
-    bos.TCC = 1000.0
-    bos.topMass = 88.0
+    # bos.TCC = 1000.0
+    bos.turbine_cost = 1000.0 * bos.machine_rating
+    bos.RNA_mass = 88.0 *1000
 
     bos.run()
 
-    print bos.cost
+    print bos.bos_costs
