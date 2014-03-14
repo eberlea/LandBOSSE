@@ -46,7 +46,7 @@ double defaultBuildingSize(double farmSize){
     if (farmSize >= x2){
         buildingSize = f2;
     } else{
-        buildingSize = c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0
+        buildingSize = c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0;
     }
 
     return buildingSize;
@@ -54,6 +54,7 @@ double defaultBuildingSize(double farmSize){
 
 // Quantity of Temporary Meteorological Towers for Testing
 double defaultTempMetTowers(double farmSize){
+
     return farmSize/75.0;
 }
 
@@ -107,10 +108,9 @@ double engineeringCost(int nTurb, double farmSize){
         multiplier = 2.0;
     }
     else{
-        multiplier = c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0
+        multiplier = c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0;
     }
 
-    double multiplier = 2.0;
     cost += multiplier * 161675;
 
     cost += 4000;
@@ -148,10 +148,10 @@ double powerPerformanceCost(double hubHt, double permanent,
     }
 
 
-    double c3 = -48.4;
-    double c2 = 13068.0;
-    double c1 = -1172490.0;
-    double c0 = 35061600.0;
+    c3 = -48.4;
+    c2 = 13068.0;
+    c1 = -1172490.0;
+    c0 = 35061600.0;
 
     double mL2 = 92600;
     double mU2 = 116800;
@@ -160,7 +160,7 @@ double powerPerformanceCost(double hubHt, double permanent,
         multiplier2 = mL2;
     }
     else if (hubHt >= hU){
-        multiplier2 = vU2;
+        multiplier2 = mU2;
     }
     else{
         multiplier2 = c3*pow(hubHt, 3) + c2*pow(hubHt, 2) + c1*hubHt + c0;
@@ -221,13 +221,13 @@ double siteCompoundCost(int accessRoadEntrances, int constructionTime,
 
     double cost = 9825.0*accessRoadEntrances + 29850.0*constructionTime;
 
-    double x1 = 10
-    double x2 = 50
-    double x1_2 = 80
-    double x2_2 = 120
-    double f1 = 3.0
-    double f2 = 5.0
-    double f3 = 10.0
+    double x1 = 10;
+    double x2 = 50;
+    double x1_2 = 80;
+    double x2_2 = 120;
+    double f1 = 3.0;
+    double f2 = 5.0;
+    double f3 = 10.0;
 
     double c3 = -6.25e-05;
     double c2 = 0.005625;
@@ -241,19 +241,19 @@ double siteCompoundCost(int accessRoadEntrances, int constructionTime,
 
     double multiplier;
     if (farmSize <= x1){
-        multiplier = f1
+        multiplier = f1;
     }
-    else if (farmSize > x1 and farmSize < x2){
-        multiplier = c3*farmSize**3 + c2*farmSize**2 + c1*farmSize + c0
+    else if (farmSize > x1 && farmSize < x2){
+        multiplier = c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0;
     }
-    else if (farmSize >= x2 and farmSize <= x1_2){
-        multiplier = f2
+    else if (farmSize >= x2 && farmSize <= x1_2){
+        multiplier = f2;
     }
-    else if (farmSize > x1_2 and farmSize < x2_2){
-        multiplier = c3_2*farmSize**3 + c2_2*farmSize**2 + c1_2*farmSize + c0_2
+    else if (farmSize > x1_2 && farmSize < x2_2){
+        multiplier = c3_2*pow(farmSize, 3) + c2_2*pow(farmSize, 2) + c1_2*farmSize + c0_2;
     }
     else{
-        multiplier = f3
+        multiplier = f3;
     }
 
     cost += multiplier * 30000;
@@ -265,13 +265,13 @@ double siteCompoundCost(int accessRoadEntrances, int constructionTime,
     c0 = 450000.0;
 
     if (farmSize <= 20.0){
-        cost += 0.0
+        cost += 0.0;
     }
     else if (farmSize >= 40.0){
-        cost += 90000.0
+        cost += 90000.0;
     }
     else{
-        cost += c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0
+        cost += c3*pow(farmSize, 3) + c2*pow(farmSize, 2) + c1*farmSize + c0;
     }
 
 

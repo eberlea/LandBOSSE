@@ -34,10 +34,12 @@ int defaultAccessRoadEntrances(int nTurb);
 double defaultBuildingSize(double farmSize);
 
 // Quantity of Temporary Meteorological Towers for Testing
-int defaultTempMetTowers(double farmSize);
+// (double returned so it can be used with smooth version)
+double defaultTempMetTowers(double farmSize);
 
 // Quantity of Permanent Meteorological Towers for Testing
-int defaultPermanentMetTowers(double farmSize);
+// (double returned so it can be used with smooth version)
+double defaultPermanentMetTowers(double farmSize);
 
 // Wind/Weather delay days
 int defaultWeatherDelayDays(int nTurb);
@@ -53,8 +55,9 @@ double transportationCost(double tcc, double rating, int nTurb,
 
 double engineeringCost(int nTurb, double farmSize);
 
-double powerPerformanceCost(double hubHt, int permanent,
-        int temporary);
+// (double accepted so it can be used with smooth version)
+double powerPerformanceCost(double hubHt, double permanent,
+        double temporary);
 
 double accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
         int nTurb, double diameter, int constructionTime,

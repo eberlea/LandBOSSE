@@ -42,8 +42,8 @@ class BOS {
 
     int constructionTime;  // Construction Time (months)
     double buildingSize;  // O&M Building Size (ft2)
-    double temporary;  // Quantity of Temporary Meteorological Towers for Testing
-    double permanent;  // Quantity of Permanent Meteorological Towers for Testing
+    int temporary;  // Quantity of Temporary Meteorological Towers for Testing
+    int permanent;  // Quantity of Permanent Meteorological Towers for Testing
     int weatherDelayDays;  // Wind/Weather delay days
     int craneBreakdowns;  // Crane breakdowns
     int accessRoadEntrances;  // Access road entrances
@@ -64,8 +64,8 @@ public:
     void setConstructionTime(int months);
     void setAccessRoadEntrances(int number);
     void setBuildingSize(double sqft);
-    void setTempTowers(double towers);
-    void setPermanentTowers(double towers);
+    void setTempTowers(int towers);
+    void setPermanentTowers(int towers);
     void setWeatherDelays(int days);
     void setCraneBreakdowns(int number);
 

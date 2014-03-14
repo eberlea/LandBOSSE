@@ -30,3 +30,7 @@ class TestDefaultCosts(unittest.TestCase):
         bos.run()
 
         self.assertAlmostEqual(285646716, bos.cost, delta=0.5)
+
+
+if __name__ == '__main__':
+    unittest.main()

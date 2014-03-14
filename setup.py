@@ -20,7 +20,7 @@ except Exception:
 
 ext = '.pyx' if USE_CYTHON else '.c'
 
-extensions = [Extension('_landbos', ['src/_landbos'+ext, 'src/LandBOS.c'])]
+extensions = [Extension('_landbos', ['src/_landbos'+ext, 'src/LandBOSsmooth.c'])]
 
 if USE_CYTHON:
     extensions = cythonize(extensions)

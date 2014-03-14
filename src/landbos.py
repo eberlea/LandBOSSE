@@ -37,16 +37,16 @@ class Defaults(Component):
     override_weatherDelayDays = Int(-1, iotype='in', units='d', desc='weather delay days')
     override_craneBreakdowns = Int(-1, iotype='in', desc='crane breakdowns')
     override_buildingSize = Float(-1, iotype='in', units='ft**2', desc='O&M building size')
-    override_permanentMetTowers = Int(-1, iotype='in', desc='permananet meteorological towers')
-    override_tempMetTowers = Int(-1, iotype='in', desc='temporary meteorological towers')
+    override_permanentMetTowers = Float(-1, iotype='in', desc='permananet meteorological towers')
+    override_tempMetTowers = Float(-1, iotype='in', desc='temporary meteorological towers')
 
     constructionTime = Int(iotype='out', units='mo', desc='construction time')
     accessRoadEntrances = Int(iotype='out', desc='access road entrances')
     weatherDelayDays = Int(iotype='out', units='d', desc='weather delay days')
     craneBreakdowns = Int(iotype='out', desc='crane breakdowns')
     buildingSize = Float(iotype='in', units='ft**2', desc='O&M building size')
-    permanentMetTowers = Int(iotype='in', desc='permananet meteorological towers')
-    tempMetTowers = Int(iotype='in', desc='temporary meteorological towers')
+    permanentMetTowers = Float(iotype='in', desc='permananet meteorological towers')
+    tempMetTowers = Float(iotype='in', desc='temporary meteorological towers')
 
     def execute(self):
         if self.override_constructionTime == -1:
@@ -129,8 +129,8 @@ class Engineering(Component):
 class PowerPerformance(Component):
 
     hubHeight = Float(iotype='in', units='m', desc='hub height')
-    permanentMetTowers = Int(iotype='in', desc='permananet meteorological towers')
-    tempMetTowers = Int(iotype='in', desc='temporary meteorological towers')
+    permanentMetTowers = Float(iotype='in', desc='permananet meteorological towers')
+    tempMetTowers = Float(iotype='in', desc='temporary meteorological towers')
 
     cost = Float(iotype='out', units='USD', desc='met masts and power performance cost')
 
@@ -397,8 +397,8 @@ class LandBOS(Assembly):
     # otherwise override with whatever you want
     constructionTime = Int(-1, iotype='in', units='mo', desc='construction time')
     buildingSize = Float(-1, iotype='in', units='ft**2', desc='O&M building size')
-    tempMetTowers = Int(-1, iotype='in', desc='temporary meteorological towers')
-    permanentMetTowers = Int(-1, iotype='in', desc='permananet meteorological towers')
+    tempMetTowers = Float(-1, iotype='in', desc='temporary meteorological towers')
+    permanentMetTowers = Float(-1, iotype='in', desc='permananet meteorological towers')
     weatherDelayDays = Int(-1, iotype='in', units='d', desc='weather delay days')
     craneBreakdowns = Int(-1, iotype='in', desc='crane breakdowns')
     accessRoadEntrances = Int(-1, iotype='in', desc='access road entrances')

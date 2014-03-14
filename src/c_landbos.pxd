@@ -25,9 +25,9 @@ cdef extern from "LandBOS.h":
 
     double defaultBuildingSize(double farmSize)
 
-    int defaultTempMetTowers(double farmSize)
+    double defaultTempMetTowers(double farmSize)
 
-    int defaultPermanentMetTowers(double farmSize)
+    double defaultPermanentMetTowers(double farmSize)
 
     int defaultWeatherDelayDays(int nTurb)
 

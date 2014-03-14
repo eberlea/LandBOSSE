@@ -65,11 +65,11 @@ void BOS::setBuildingSize(double sqft){
     buildingSize = sqft;
 }
 
-void BOS::setTempTowers(double towers){
+void BOS::setTempTowers(int towers){
     temporary = towers;
 }
 
-void BOS::setPermanentTowers(double towers){
+void BOS::setPermanentTowers(int towers){
     permanent = towers;
 }
 

@@ -44,12 +44,12 @@ double defaultBuildingSize(double farmSize){
 }
 
 // Quantity of Temporary Meteorological Towers for Testing
-int defaultTempMetTowers(double farmSize){
+double defaultTempMetTowers(double farmSize){
     return round(farmSize/75.0);
 }
 
 // Quantity of Permanent Meteorological Towers for Testing
-int defaultPermanentMetTowers(double farmSize){
+double defaultPermanentMetTowers(double farmSize){
 
     int permanent;
 
@@ -109,8 +109,8 @@ double engineeringCost(int nTurb, double farmSize){
 }
 
 
-double powerPerformanceCost(double hubHt, int permanent,
-        int temporary){
+double powerPerformanceCost(double hubHt, double permanent,
+        double temporary){
 
     double multiplier1 = 290000;
     double multiplier2 = 116800;
