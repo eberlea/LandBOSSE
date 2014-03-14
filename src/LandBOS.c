@@ -204,7 +204,7 @@ double foundationCost(double rating, double diameter, double topMass,
         double hubHt, SoilCondition soil, int nTurb){
 
     double cost = rating*diameter*topMass/1000.0
-    + 163421.5*pow(nTurb, -0.1458) + (hubHt-80)*500;
+        + 163421.5*pow(nTurb, -0.1458) + (hubHt-80)*500;
 
     if (soil == BOUYANT){
         cost += 20000;
@@ -277,7 +277,7 @@ double electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
         cost = nTurb*factor2;
     }
     cost += round(farmSize/25.0)*35375 + round(farmSize/100.0)*50000
-    + diameter*nTurb*factor3 + thermalBackfill*5 + 41945;
+        + diameter*nTurb*factor3 + thermalBackfill*5 + 41945;
 
     return cost;
 }
@@ -331,7 +331,7 @@ double electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
     }
 
     cost += nTurb*(factor1 + diameter*(factor2 + factor3*rockTrenchingLength/100.0))
-    + overheadCollector*200000 + 10000;
+        + overheadCollector*200000 + 10000;
 
     return cost;
 }
@@ -348,11 +348,7 @@ double substationCost(double voltage, double farmSize){
 double transmissionCost(double voltage, double distInter,
         int newSwitchyardRequired){
 
-    double cost = 0.0;
-
-    if (distInter != 0){
-        cost = (1176*voltage + 218257)*pow(distInter, 0.8937);
-    }
+    double cost = (1176*voltage + 218257)*pow(distInter, 0.8937);
 
     if (newSwitchyardRequired){
         cost += 18115*voltage + 165944;
