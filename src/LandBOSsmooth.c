@@ -89,6 +89,15 @@ double transportationCost(double tcc, double rating, int nTurb,
 }
 
 
+void deriv_transportationCost(double rating, int nTurb,
+        double* dtcc, double* dhubHt){
+
+    *dtcc = rating * nTurb;
+    *dhubHt = 0.0;
+
+}
+
+
 double engineeringCost(int nTurb, double farmSize){
 
     double cost = 7188.5 * nTurb;
@@ -174,6 +183,50 @@ double powerPerformanceCost(double hubHt, double permanent,
 }
 
 
+void deriv_powerPerformanceCost(double hubHt, double permanent,
+        double temporary, double* dhubHt){
+
+    double dmultiplier1;
+    double dmultiplier2;
+
+    double hL = 85.0;
+    double hU = 95.0;
+
+
+    double c3 = -114.8;
+    double c2 = 30996.0;
+    double c1 = -2781030.0;
+    double c0 = 83175600.0;
+
+    if (hubHt <= hL){
+        dmultiplier1 = 0.0;
+    }
+    else if (hubHt >= hU){
+        dmultiplier1 = 0.0;
+    }
+    else{
+        dmultiplier1 = c3*3.0*pow(hubHt, 2) + c2*2.0*hubHt + c1;
+    }
+
+
+    c3 = -48.4;
+    c2 = 13068.0;
+    c1 = -1172490.0;
+    c0 = 35061600.0;
+
+    if (hubHt <= hL){
+        dmultiplier2 = 0.0;
+    }
+    else if (hubHt >= hU){
+        dmultiplier2 = 0.0;
+    }
+    else{
+        dmultiplier2 = c3*3.0*pow(hubHt, 2) + c2*2.0*hubHt + c1;
+    }
+
+    *dhubHt = permanent*dmultiplier1 + temporary*dmultiplier2;
+}
+
 
 
 double accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
@@ -213,6 +266,42 @@ double accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
                    + accessRoadEntrances*3800)*1.05;
 
     return cost;
+}
+
+
+void deriv_accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double *ddiameter){
+
+    double factor1 = 0.0;
+    double factor2 = 0.0;
+
+    if (layout == SIMPLE){
+        if (terrain == FLAT_TO_ROLLING){
+            factor1 = 49962.5;
+            factor2 = 24.8;
+        } else if (terrain == RIDGE_TOP){
+            factor1 = 59822.0;
+            factor2 = 26.8;
+        } else if (terrain == MOUNTAINOUS){
+            factor1 = 66324.0;
+            factor2 = 26.8;
+        }
+
+    } else if (layout == COMPLEX){
+        if (terrain == FLAT_TO_ROLLING){
+            factor1 = 62653.6;
+            factor2 = 30.9;
+        } else if (terrain == RIDGE_TOP){
+            factor1 = 74213.3;
+            factor2 = 33.0;
+        } else if (terrain == MOUNTAINOUS){
+            factor1 = 82901.1;
+            factor2 = 33.0;
+        }
+    }
+
+    *ddiameter = nTurb*factor2*1.05;
+
 }
 
 
@@ -305,6 +394,16 @@ double foundationCost(double rating, double diameter, double topMass,
 }
 
 
+void deriv_foundationCost(double rating, double diameter, double topMass,
+        int nTurb, double* ddiameter, double* dtopMass, double* dhubHt){
+
+    *ddiameter = nTurb*rating*topMass/1000.0;
+    *dtopMass = nTurb*rating*diameter/1000.0;
+    *dhubHt = nTurb*500.0;
+
+}
+
+
 double erectionCost(double rating, double hubHt, int nTurb, int weatherDelayDays,
         int craneBreakdowns, int deliveryAssistRequired){
 
@@ -317,6 +416,12 @@ double erectionCost(double rating, double hubHt, int nTurb, int weatherDelayDays
     cost += 20000*weatherDelayDays + 35000*craneBreakdowns + 181*nTurb + 1834;
 
     return cost;
+}
+
+
+void deriv_erectionCost(int nTurb, double* dhubHt){
+
+    *dhubHt = 500.0*nTurb;
 }
 
 
@@ -369,6 +474,48 @@ double electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
         + diameter*nTurb*factor3 + thermalBackfill*5 + 41945;
 
     return cost;
+}
+
+
+void deriv_electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double* ddiameter){
+
+    double factor1 = 0.0;
+    double factor2 = 0.0;
+    double factor3 = 0.0;
+
+    if (layout == SIMPLE){
+        if (terrain == FLAT_TO_ROLLING){
+            factor1 = 66733.4;
+            factor2 = 27088.4;
+            factor3 = 545.4;
+        } else if (terrain == RIDGE_TOP){
+            factor1 = 67519.4;
+            factor2 = 27874.4;
+            factor3 = 590.8;
+        } else if (terrain == MOUNTAINOUS){
+            factor1 = 68305.4;
+            factor2 = 28660.4;
+            factor3 = 590.8;
+        }
+
+    } else if (layout == COMPLEX){
+        if (terrain == FLAT_TO_ROLLING){
+            factor1 = 67519.4;
+            factor2 = 27874.4;
+            factor3 = 681.7;
+        } else if (terrain == RIDGE_TOP){
+            factor1 = 68305.4;
+            factor2 = 28660.4;
+            factor3 = 727.2;
+        } else if (terrain == MOUNTAINOUS){
+            factor1 = 69484.4;
+            factor2 = 29839.4;
+            factor3 = 727.2;
+        }
+    }
+
+    *ddiameter = nTurb*factor3;
 }
 
 
@@ -439,6 +586,48 @@ double electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
     return cost;
 }
 
+void deriv_electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double rockTrenchingLength, double* ddiameter){
+
+    double factor1 = 0.0;
+    double factor2 = 0.0;
+    double factor3 = 0.0;
+
+    if (layout == SIMPLE){
+        if (terrain == FLAT_TO_ROLLING){
+            factor1 = 7059.3;
+            factor2 = 352.4;
+            factor3 = 297.0;
+        } else if (terrain == RIDGE_TOP){
+            factor1 = 7683.5;
+            factor2 = 564.3;
+            factor3 = 483.0;
+        } else if (terrain == MOUNTAINOUS){
+            factor1 = 8305.0;
+            factor2 = 682.6;
+            factor3 = 579.0;
+        }
+
+    } else if (layout == COMPLEX){
+        if (terrain == FLAT_TO_ROLLING){
+            factor1 = 7683.5;
+            factor2 = 564.9;
+            factor3 = 446.0;
+        } else if (terrain == RIDGE_TOP){
+            factor1 = 8305.0;
+            factor2 = 866.8;
+            factor3 = 713.0;
+        } else if (terrain == MOUNTAINOUS){
+            factor1 = 9240.0;
+            factor2 = 972.8;
+            factor3 = 792.0;
+        }
+    }
+
+    *ddiameter = nTurb*(factor2 + factor3*rockTrenchingLength/100.0);
+
+}
+
 
 double substationCost(double voltage, double farmSize){
 
@@ -502,6 +691,19 @@ MultCost insuranceMultiplierAndCost(double tcc, double farmSize,
 }
 
 
+void deriv_insuranceMultiplierAndCost(double farmSize,
+        int performanceBond, double* dtcc, double* dfoundationCost){
+
+    *dtcc = (0.7 + 0.4 + 1.0) * farmSize;
+    *dfoundationCost = 0.02;
+
+    if (performanceBond){
+        *dtcc += 10.0 * farmSize;
+    }
+
+}
+
+
 MultCost markupMultiplierAndCost(double transportationCost, double contingency,
         double warranty, double useTax, double overhead, double profitMargin){
 
@@ -513,6 +715,15 @@ MultCost markupMultiplierAndCost(double transportationCost, double contingency,
 
 
     return result;
+}
+
+
+void deriv_markupMultiplierAndCost(double contingency, double warranty,
+        double useTax, double overhead, double profitMargin, double* dtransportationCost){
+
+    double alpha = (contingency + warranty + useTax + overhead + profitMargin)/100.0;
+    *dtransportationCost = -alpha;
+
 }
 
 

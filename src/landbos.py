@@ -7,6 +7,7 @@ Created by Andrew Ning on 2014-03-12.
 Copyright (c) NREL. All rights reserved.
 """
 
+import numpy as np
 from openmdao.main.api import Component, Assembly
 from openmdao.main.datatypes.api import Int, Float, Enum, Bool
 
@@ -103,14 +104,15 @@ class Transportation(Component):
 
     def list_deriv_vars(self):
 
-        inputs = ('TCC', 'rating', 'hubHeight')
+        inputs = ('TCC', 'hubHeight')
         outputs = ('cost',)
 
         return inputs, outputs
 
     def provideJ(self):
 
-        J = 0.0  # TODO:
+        dtcc, dhubHt = _landbos.deriv_transportationCost(self.rating, self.nTurbines)
+        J = np.array([[dtcc, dhubHt]])
 
         return J
 
@@ -138,6 +140,20 @@ class PowerPerformance(Component):
         self.cost = _landbos.powerPerformanceCost(self.hubHeight,
             self.permanentMetTowers, self.tempMetTowers)
 
+    def list_deriv_vars(self):
+
+        inputs = ('hubHeight',)
+        outputs = ('cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        dhubHT = _landbos.deriv_powerPerformanceCost(self.hubHeight, self.permanentMetTowers, self.tempMetTowers)
+        J = np.array([[dhubHT]])
+
+        return J
+
 
 class AccessRoads(Component):
 
@@ -156,6 +172,21 @@ class AccessRoads(Component):
         self.cost = _landbos.accessRoadsCost(Enum2Int(self, 'terrain'),
             Enum2Int(self, 'layout'), self.nTurbines, self.diameter,
             self.constructionTime, self.accessRoadEntrances)
+
+    def list_deriv_vars(self):
+
+        inputs = ('diameter',)
+        outputs = ('cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        ddiameter = _landbos.deriv_accessRoadsCost(Enum2Int(self, 'terrain'),
+            Enum2Int(self, 'layout'), self.nTurbines)
+        J = np.array([[ddiameter]])
+
+        return J
 
 
 class SiteCompound(Component):
@@ -197,6 +228,22 @@ class Foundations(Component):
         self.cost = _landbos.foundationCost(self.rating, self.diameter,
             self.topMass/1000.0, self.hubHeight, Enum2Int(self, 'soil'), self.nTurbines)
 
+    def list_deriv_vars(self):
+
+        inputs = ('diameter', 'topMass', 'hubHeight')
+        outputs = ('cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        ddiameter, dtopMass, dhubHt = _landbos.deriv_foundationCost(self.rating,
+            self.diameter, self.topMass/1000.0, self.nTurbines)
+
+        J = np.array([[ddiameter, dtopMass/1000.0, dhubHt]])
+
+        return J
+
 
 class Erection(Component):
 
@@ -213,6 +260,20 @@ class Erection(Component):
         self.cost = _landbos.erectionCost(self.rating, self.hubHeight,
             self.nTurbines, self.weatherDelayDays,
             self.craneBreakdowns, self.deliveryAssistRequired)
+
+    def list_deriv_vars(self):
+
+        inputs = ('hubHeight',)
+        outputs = ('cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        dhubHt = _landbos.deriv_erectionCost(self.nTurbines)
+        J = np.array([[dhubHt]])
+
+        return J
 
 
 class ElecMaterials(Component):
@@ -234,6 +295,21 @@ class ElecMaterials(Component):
             Enum2Int(self, 'layout'), self.farmSize, self.diameter, self.nTurbines,
             self.padMountTransformer, self.thermalBackfill)
 
+    def list_deriv_vars(self):
+
+        inputs = ('diameter',)
+        outputs = ('cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        ddiameter = _landbos.deriv_electricalMaterialsCost(Enum2Int(self, 'terrain'),
+            Enum2Int(self, 'layout'), self.nTurbines)
+        J = np.array([[ddiameter]])
+
+        return J
+
 
 class ElecInstallation(Component):
 
@@ -253,6 +329,21 @@ class ElecInstallation(Component):
         self.cost = _landbos.electricalInstallationCost(Enum2Int(self, 'terrain'),
             Enum2Int(self, 'layout'), self.farmSize, self.diameter, self.nTurbines,
             self.rockTrenchingLength, self.overheadCollector)
+
+    def list_deriv_vars(self):
+
+        inputs = ('diameter',)
+        outputs = ('cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        ddiameter = _landbos.deriv_electricalInstallationCost(Enum2Int(self, 'terrain'),
+            Enum2Int(self, 'layout'), self.nTurbines, self.rockTrenchingLength)
+        J = np.array([[ddiameter]])
+
+        return J
 
 
 class Substation(Component):
@@ -315,6 +406,21 @@ class Insurance(Component):
         self.alpha = values['alpha']
         self.cost = values['cost']
 
+    def list_deriv_vars(self):
+
+        inputs = ('TCC', 'foundationCost')
+        outputs = ('alpha', 'cost')
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        dtcc, dfoundationcost = _landbos.deriv_insuranceMultiplierAndCost(
+            self.farmSize, self.performanceBond)
+        J = np.array([[0.0, 0.0], [dtcc, dfoundationcost]])
+
+        return J
+
 
 class Markup(Component):
 
@@ -335,9 +441,26 @@ class Markup(Component):
         self.alpha = values['alpha']
         self.cost = values['cost']
 
+    def list_deriv_vars(self):
+
+        inputs = ('transportationCost',)
+        outputs = ('alpha', 'cost',)
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        dtransportationcost = _landbos.deriv_markupMultiplierAndCost(self.contingency,
+            self.warranty, self.useTax, self.overhead, self.profitMargin)
+        J = np.array([[0.0], [dtransportationcost]])
+
+        return J
+
 
 class Total(Component):
 
+    turbine_cost = Float(iotype='in', units='USD')
+    nTurbines = Int(iotype='in', desc='number of turbines')
     transportation_cost = Float(iotype='in', units='USD')
     engineering_cost = Float(iotype='in', units='USD')
     powerperf_cost = Float(iotype='in', units='USD')
@@ -358,7 +481,11 @@ class Total(Component):
     insurance_alpha = Float(iotype='in')
     markup_alpha = Float(iotype='in')
 
+    multiplier = Float(1.0, iotype='in')
+
     cost = Float(iotype='out', units='USD', desc='total BOS cost')
+
+    missing_deriv_policy = 'assume_zero'
 
     def execute(self):
 
@@ -373,6 +500,35 @@ class Total(Component):
 
         # multiplier
         self.cost /= (1.0 - alpha)
+
+        # remove TCC so only BOS is left
+        TCC = self.turbine_cost * self.nTurbines
+        self.cost -= TCC
+
+        self.cost *= self.multiplier
+
+
+    def list_deriv_vars(self):
+
+        inputs = ('turbine_cost', 'transportation_cost', 'engineering_cost', 'powerperf_cost',
+            'roads_cost', 'compound_cost', 'building_cost', 'foundation_cost', 'erection_cost',
+            'elecmat_cost', 'elecinst_cost', 'substation_cost', 'transmission_cost',
+            'projmgmt_cost', 'development_cost', 'insurance_cost', 'markup_cost', 'multiplier')
+        outputs = ('cost',)
+
+
+        return inputs, outputs
+
+    def provideJ(self):
+
+        alpha = self.insurance_alpha + self.markup_alpha
+        dcost = self.multiplier / (1 - alpha) * np.ones(18)
+        dcost[0] = -self.multiplier * self.nTurbines
+        dcost[-1] = self.cost / self.multiplier
+
+        J = np.array([dcost])
+
+        return J
 
 
 class LandBOS(Assembly):
@@ -393,6 +549,8 @@ class LandBOS(Assembly):
     turbine_cost = Float(iotype='in', units='USD')
     # TCC = Float(iotype='in', units='USD/kW', desc='turbine capital cost per kW')
     RNA_mass = Float(iotype='in', units='kg', desc='tower top mass')
+
+    multiplier = Float(1.0, iotype='in')
 
     # If left at default of -1 then these values will be calculated
     # otherwise override with whatever you want
@@ -561,6 +719,8 @@ class LandBOS(Assembly):
         self.connect('profitMargin', 'markup.profitMargin')
 
         # connections to total
+        self.connect('turbine_cost', 'total.turbine_cost')
+        self.connect('turbine_number', 'total.nTurbines')
         self.connect('transportation.cost', 'total.transportation_cost')
         self.connect('engineering.cost', 'total.engineering_cost')
         self.connect('powerperf.cost', 'total.powerperf_cost')
@@ -579,6 +739,7 @@ class LandBOS(Assembly):
         self.connect('markup.cost', 'total.markup_cost')
         self.connect('insurance.alpha', 'total.insurance_alpha')
         self.connect('markup.alpha', 'total.markup_alpha')
+        self.connect('multiplier', 'total.multiplier')
 
         # connections to outputs
         self.connect('total.cost', 'bos_costs')
@@ -598,10 +759,24 @@ if __name__ == '__main__':
     bos.terrain = 'FLAT_TO_ROLLING'
     bos.layout = 'COMPLEX'
     bos.soil = 'STANDARD'
-    # bos.TCC = 1000.0
     bos.turbine_cost = 1000.0 * bos.machine_rating
     bos.RNA_mass = 88.0 *1000
 
     bos.run()
 
     print bos.bos_costs
+
+
+    c0 = bos.transportation.cost
+    delta = 1e-6*bos.turbine_cost
+    bos.turbine_cost += delta
+    bos.run()
+    print (bos.transportation.cost - c0)/delta
+
+    bos.check_gradient(inputs=['rotor_diameter', 'hub_height', 'RNA_mass', 'turbine_cost'], outputs=['total.cost'])
+    # bos.check_gradient(inputs=['turbine_cost'], outputs=['transportation.cost'])
+    # bos.check_gradient(inputs=['rotor_diameter', 'hub_height', 'RNA_mass', ('transportation.TCC', 'insurance.TCC')], outputs=['total.cost'])
+
+
+
+

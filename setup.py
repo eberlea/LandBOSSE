@@ -1,13 +1,3 @@
-# from distutils.core import setup
-# from Cython.Build import cythonize
-
-# setup(
-#     name = 'LandBOS',
-#     # ext_modules = cythonize('src/pybos.pyx')
-#     ext_modules = cythonize('yo', ['landbos.pyx'])
-# )
-
-
 from distutils.core import setup
 from distutils.extension import Extension
 

@@ -10,6 +10,10 @@ Copyright (c) NREL. All rights reserved.
 import unittest
 from landbos import LandBOS
 
+# -----------------------------------------------------------
+# These tests only apply to LandBOS.c (not LandBOSsmooth.c)
+# -----------------------------------------------------------
+
 
 class TestDefaultCosts(unittest.TestCase):
 
@@ -24,13 +28,12 @@ class TestDefaultCosts(unittest.TestCase):
         bos.terrain = 'FLAT_TO_ROLLING'
         bos.layout = 'COMPLEX'
         bos.soil = 'STANDARD'
-        # bos.TCC = 1000.0
         bos.turbine_cost = 1000.0 * bos.machine_rating
         bos.RNA_mass = 88.0 *1000
 
         bos.run()
 
-        self.assertAlmostEqual(285646716, bos.bos_costs, delta=0.5)
+        self.assertAlmostEqual(285646716 - bos.turbine_cost*bos.turbine_number, bos.bos_costs, delta=0.5)
 
 
 if __name__ == '__main__':

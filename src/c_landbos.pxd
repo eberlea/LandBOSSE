@@ -37,14 +37,23 @@ cdef extern from "LandBOS.h":
     double transportationCost(double tcc, double rating, int nTurb,
             double hubHt, double transportDist)
 
+    void deriv_transportationCost(double rating, int nTurb,
+        double* dtcc, double* dhubHt)
+
     double engineeringCost(int nTurb, double farmSize)
 
     double powerPerformanceCost(double hubHt, double permanent,
             double temporary)
 
+    void deriv_powerPerformanceCost(double hubHt, double permanent,
+            double temporary, double* dhubHt)
+
     double accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
             int nTurb, double diameter, int constructionTime,
             int accessRoadEntrances)
+
+    void deriv_accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double *ddiameter)
 
     double siteCompoundCost(int accessRoadEntrances, int constructionTime,
             double farmSize)
@@ -54,16 +63,27 @@ cdef extern from "LandBOS.h":
     double foundationCost(double rating, double diameter, double topMass,
             double hubHt, SoilCondition soil, int nTurb)
 
+    void deriv_foundationCost(double rating, double diameter, double topMass,
+        int nTurb, double* ddiameter, double* dtopMass, double* dhubHt)
+
     double erectionCost(double rating, double hubHt, int nTurb, int weatherDelayDays,
             int craneBreakdowns, bint deliveryAssistRequired)
+
+    void deriv_erectionCost(int nTurb, double* dhubHt)
 
     double electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
             double farmSize, double diameter, int nTurb, bint padMountTransformer,
             double thermalBackfill)
 
+    void deriv_electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double* ddiameter)
+
     double electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
             double farmSize, double diameter, int nTurb,
             double rockTrenchingLength, double overheadCollector)
+
+    void deriv_electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double rockTrenchingLength, double* ddiameter)
 
     double substationCost(double voltage, double farmSize)
 
@@ -77,8 +97,14 @@ cdef extern from "LandBOS.h":
     MultCost insuranceMultiplierAndCost(double tcc, double farmSize,
             double foundationCost, bint performanceBond)
 
+    void deriv_insuranceMultiplierAndCost(double farmSize,
+        int performanceBond, double* dtcc, double* dfoundationCost)
+
     MultCost markupMultiplierAndCost(double transportationCost, double contingency,
             double warranty, double useTax, double overhead, double profitMargin)
+
+    void deriv_markupMultiplierAndCost(double contingency, double warranty,
+        double useTax, double overhead, double profitMargin, double* dtransportationCost)
 
     double totalCost(double rating, double diameter, double hubHt,
         int nTurb, double voltage, double distInter,

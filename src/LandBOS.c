@@ -461,6 +461,30 @@ double totalCost(double rating, double diameter, double hubHt,
     // multiplier
     cost /= (1.0 - alpha);
 
+    // remove TCC so only BOS is left
+    cost -= tcc * rating * nTurb;
+
     return cost;
 
 }
+
+
+
+// these functions (gradients) are only defined in the smooth version
+void deriv_transportationCost(double rating, int nTurb,
+        double* dtcc, double* dhubHt){}
+void deriv_powerPerformanceCost(double hubHt, double permanent,
+        double temporary, double* dhubHt){}
+void deriv_accessRoadsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double *ddiameter){}
+void deriv_foundationCost(double rating, double diameter, double topMass,
+        int nTurb, double* ddiameter, double* dtopMass, double* dhubHt){}
+void deriv_erectionCost(int nTurb, double* dhubHt){}
+void deriv_electricalMaterialsCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double* ddiameter){}
+void deriv_electricalInstallationCost(SiteTerrain terrain, TurbineLayout layout,
+        int nTurb, double rockTrenchingLength, double* ddiameter){}
+void deriv_insuranceMultiplierAndCost(double farmSize,
+        int performanceBond, double* dtcc, double* dfoundationCost){}
+void deriv_markupMultiplierAndCost(double contingency, double warranty,
+        double useTax, double overhead, double profitMargin, double* dtransportationCost){}
