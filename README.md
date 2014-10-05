@@ -3,9 +3,6 @@ LandBOS
 
 A C version of the NREL land-based balance of station model.  A continuously differentiable version is also implemented for use in gradient-based optimization applications.  The repository also includes a Python wrapper, an OpenMDAO wrapper and a C++ wrapper all using the same core implementation.
 
-### Original Excel Spreadsheet:  
-BOS_Model_v1.0_Released-1.xlsx
-
 ### C Implementation:  
 
 All computations are done here.
